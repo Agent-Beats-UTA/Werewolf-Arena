@@ -6,4 +6,7 @@ class EventType(Enum):
     SEER_INVESTIGATION = auto()
     VOTE = auto()
     DISCUSSION = auto()
+    NIGHT_END = auto()
+    ROUND_END = auto()
+    GAME_END = auto()
     

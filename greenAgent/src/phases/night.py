@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
 from src.models.abstract.Phase import Phase
-from src.models.Game import Game
+from greenAgent.src.game.Game import Game
 from src.a2a.messenger import Messenger
 from src.models.Event import Event
 
@@ -14,6 +14,8 @@ class Night(Phase):
     def run(self):
         self.execute_werewolf_kill()
         self.execute_seer_investigation()
+        
+        self.game.log_event(self.game.state.current_round, Event(type=EventType.NIGHT_END))
 
     def execute_werewolf_kill(self):
         game_state = self.game.state

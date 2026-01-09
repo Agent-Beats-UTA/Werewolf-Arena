@@ -3,13 +3,23 @@ from typing import List
 
 from src.models.enum.EventType import EventType
 from src.models.enum.Phase import Phase
-from src.models.GameData import GameData
-
+from greenAgent.src.game.GameData import GameData
 from src.models.Event import Event
+
+from src.phases.night import Night
+from src.phases.bidding import Bidding
+from src.phases.voting import Voting
+from src.phases.discussion import Discussion
+from src.phases.round_end import RoundEnd
+from src.phases.game_end import GameEnd
 
 class Game(BaseModel):
     current_phase: Phase
     state: GameData
+    night_controller: Night
+    bidding_controller: Bidding
+    discussion_controller: Discussion
+    voting_controller: Voting
 
     def __init__(self, participants: List[str]):
         super().__init__(
@@ -24,7 +34,11 @@ class Game(BaseModel):
                 bids={},
                 votes={},
                 eliminations={}
-            )
+            ),
+            night_controller = Night(),
+            voting_controller = Voting(),
+            bidding_controller = Bidding(),
+            discussion_controller = Discussion()
         )
         
         for p in participants:
@@ -48,25 +62,19 @@ class Game(BaseModel):
         
         
     def run_night_phase(self):
-        # Implementation here
-        pass
+        self.night_controller.run()
 
     def run_bidding_phase(self):
-        # Implementation here
-        pass
+        self.bidding_controller.run()
 
     def run_discussion_phase(self):
-        # Implementation here
-        pass
+        self.discussion_controller.run()
 
     def run_voting_phase(self):
-        # Implementation here
-        pass
+        self.voting_controller.run()
 
     def run_round_end_phase(self):
-        # Implementation here
         pass
-
+        
     def run_game_end_phase(self):
-        # Implementation here
         pass

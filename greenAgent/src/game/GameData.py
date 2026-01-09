@@ -9,6 +9,9 @@ from src.models.Vote import Vote
 from src.models.Elimination import Elimination
 from src.models.Event import Event
 
+from src.models.enum.Role import Role
+from src.models.enum.Status import Status
+
 class GameData(BaseModel):
     current_round: int
     winner: Optional[str]  # "werewolves", "villagers", or None
@@ -25,14 +28,12 @@ class GameData(BaseModel):
     events: Dict[int, List[Event]]
 
     def set_status(self, status: str):  # assignment | player_actions | bidding | discussion | voting | end | reset
-        # Implementation here
         pass
 
     def declare_winner(self, winner: str):
         self.winner = winner
 
     def place_bid(self, participant_id: str, bid_amount: int):
-        # Implementation here
         pass
 
     def cast_vote(self, voter: str, voting_for: str, rationale: str):
@@ -43,14 +44,11 @@ class GameData(BaseModel):
 
     def add_participant(self, participant_id: str, url: str):
         # Assuming Participant needs id and url, role and status default
-        from greenAgent.models.enum.Role import Role
-        from greenAgent.models.enum.Status import Status
         participant = Participant(id=participant_id, url=url, role=Role.VILLAGER, status=Status.ACTIVE)
         self.participants[participant_id] = participant
 
     def assign_role_to_participant(self, participant_id: str, role: str):
         if participant_id in self.participants:
-            from greenAgent.models.enum.Role import Role
             self.participants[participant_id].role = getattr(Role, role.upper())
 
     def eliminate_player(self, participant_id: str):
