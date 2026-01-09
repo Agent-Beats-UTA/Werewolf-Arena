@@ -1,7 +1,11 @@
 from pydantic import BaseModel
 from typing import List
-from greenAgent.models.enum.Phase import Phase
-from greenAgent.models.GameData import GameData
+
+from src.models.enum.EventType import EventType
+from src.models.enum.Phase import Phase
+from src.models.GameData import GameData
+
+from src.models.Event import Event
 
 class Game(BaseModel):
     current_phase: Phase
@@ -26,6 +30,23 @@ class Game(BaseModel):
         for p in participants:
             self.state.add_participant(p, "")
             
+    def log_event(self, round:int, event:Event):
+         self.state.events.setdefault(round, []).append(event)
+         
+    def get_night_elimination_message(self, round_num:int):
+        round_events = self.state.events[round_num]
+        eliminated_player = [e.eliminated_player for e in round_events if e.type == EventType.WEREWOLF_ELIMINATION]
+        
+        return f"In the middle of the night, the werewolf eliminated player {eliminated_player}"
+        
+    def get_vote_elimination_message(self, round_num:int):
+        round_events = self.state.events[round_num]
+        eliminated_player = [e.eliminated_player for e in round_events if e.type == EventType.VILLAGE_ELIMINATION]
+        
+        return f"You all voted to eliminate player {eliminated_player}. They are not the werewolf."
+        
+        
+        
     def run_night_phase(self):
         # Implementation here
         pass

@@ -12,7 +12,3 @@ class Phase(ABC):
     @abstractmethod
     def run(self):
         pass
-    
-    @abstractmethod
-    def get_prompt(self):
-        pass

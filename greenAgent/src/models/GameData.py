@@ -1,18 +1,20 @@
 from pydantic import BaseModel
 from typing import Dict, List, Optional
+
 from src.models.enum.EliminationType import EliminationType
 from src.models.enum.Status import Status
 from src.models.Participant import Participant
 from src.models.Message import Message
 from src.models.Vote import Vote
 from src.models.Elimination import Elimination
+from src.models.Event import Event
 
 class GameData(BaseModel):
     current_round: int
     winner: Optional[str]  # "werewolves", "villagers", or None
     turns_to_speak_per_round: int
     participants: Dict[int, List[Participant]]
-    werewolves: List[Participant]
+    werewolf:Participant
     seer: Participant
     villagers:List[Participant]
     speaking_order: Dict[int, List[str]]
@@ -20,6 +22,7 @@ class GameData(BaseModel):
     bids: Dict[int, List[str]]
     votes: Dict[int, List[Vote]]
     eliminations: Dict[int, List[Elimination]]
+    events: Dict[int, List[Event]]
 
     def set_status(self, status: str):  # assignment | player_actions | bidding | discussion | voting | end | reset
         # Implementation here
