@@ -1,6 +1,6 @@
 from pydantic import BaseModel
-from greenAgent.models.enum.Role import Role
-from greenAgent.models.enum.Status import Status
+from src.models.enum.Role import Role
+from src.models.enum.Status import Status
 
 class Participant(BaseModel):
     id:str
