@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock, AsyncMock
 
-from src.phases.discussion import Discussion
+from greenAgent.src.phases.debate import Discussion
 
 
 class TestDiscussionPhase:

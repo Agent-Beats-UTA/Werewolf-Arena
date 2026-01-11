@@ -100,7 +100,7 @@ source .venv/bin/activate
 .venv\Scripts\Activate.ps1
 ```
 
-You'll know the virtual environment is active when you see `(.venv)` at the beginning of your terminal prompt.
+You'll know the virtual environment is active when you see `(greenagent)` at the beginning of your terminal prompt.
 
 To deactivate the virtual environment:
 ```bash
