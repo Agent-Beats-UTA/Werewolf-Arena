@@ -8,6 +8,7 @@ from src.models.Message import Message
 from src.models.Vote import Vote
 from src.models.Elimination import Elimination
 from src.models.Event import Event
+from src.models.Bid import Bid
 
 from src.models.enum.Role import Role
 from src.models.enum.Status import Status
@@ -22,7 +23,7 @@ class GameData(BaseModel):
     villagers:List[Participant]
     speaking_order: Dict[int, List[str]]
     chat_history: Dict[int, List[Message]]
-    bids: Dict[int, List[str]]
+    bids: Dict[int, List[Bid]]
     votes: Dict[int, List[Vote]]
     eliminations: Dict[int, List[Elimination]]
     events: Dict[int, List[Event]]

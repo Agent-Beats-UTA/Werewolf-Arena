@@ -9,7 +9,7 @@ from src.models.Event import Event
 from src.phases.night import Night
 from src.phases.bidding import Bidding
 from src.phases.voting import Voting
-from src.phases.discussion import Discussion
+from greenAgent.src.phases.debate import Discussion
 from src.phases.round_end import RoundEnd
 from src.phases.game_end import GameEnd
 

@@ -1,9 +1,95 @@
 from src.models.abstract.Phase import Phase
-from greenAgent.src.game.Game import Game
+from src.game.Game import Game
+from src.models.Bid import Bid
+from src.models.Event import Event
+from src.models.enum.EventType import EventType
+
+from typing import List
 
 class Bidding(Phase):
     def __init__(self, game:Game):
         super().__init__(game)
-        
+
     def run(self):
-        pass
+        self.collect_round_bids()
+        self.tally_bids_and_set_order()
+        
+    def collect_round_bids(self):
+        game_state = self.game.state
+        current_round = game_state.current_round
+
+        current_participants = game_state.participants[current_round]
+
+        for participant in current_participants:
+            response = self.messenger.talk_to_agent(
+                message=self.get_bid_prompt(
+                    user_role=participant.role,
+                    bids=game_state.bids.get(current_round, [])
+                ),
+                url=participant.url
+            )
+            
+            parsed = self._parse_json_response(response)
+            bid_amount = parsed["bid_amount"]
+            reason = parsed["reason"]
+            
+            player_bid = Bid(
+                participant_id=participant.id,
+                amount=bid_amount
+            )
+            
+            if current_round not in game_state.bids:
+                game_state.bids[current_round] = []
+
+            game_state.bids[current_round].append(player_bid)
+            
+            # Log Event
+            bid_event = Event(
+                type=EventType.BID_PLACED,
+                player=participant.id,
+                description=f"Placed a bid of {bid_amount} points for rationale: {reason}"
+            )
+            
+            self.game.log_event(bid_event)
+
+    def tally_bids_and_set_order(self):
+        game_state = self.game.state
+        current_round = game_state.current_round
+        round_bids = game_state.bids[current_round]
+        
+        # Sort bids in descending order
+        sorted_bids = sorted(round_bids, key=lambda bid: bid.amount, reverse=True)
+        
+        # Set speaking order based on bids
+        speaking_order = [bid.participant_id for bid in sorted_bids]
+        game_state.speaking_order[current_round] = speaking_order
+        
+        # Log Event
+        order_event = Event(
+            type=EventType.SPEAKING_ORDER_SET,
+            player="System",
+            description=f"Speaking order for round {current_round} set as: {', '.join(speaking_order)}"
+        )
+        
+        self.game.log_event(order_event)
+
+    # Prompts
+    def get_bid_prompt(self, user_role:str, bids:List[Bid]) -> str:
+        return f"""
+            It is time to place your bid for speaking order in the upcoming debate round.
+            You are playing as a {user_role}.
+
+            Place a bid between 0 and 100 points to determine your speaking order.
+
+            Remember, your bid will determine when you get to speak, with higher bids allowing you to speak earlier.
+            Consider your strategy carefully based on the current state of the game and the messages exchanged so far.
+
+            Here are the current bids from all participants:
+            {"\n".join([f"- Participant {bid.participant_id}: {bid.amount} points" for bid in bids])}
+
+            Be sure to response in JSON format as follows:
+            {{
+                "bid_amount": <your_bid_amount>
+                "reason": "your explanation for your bid"
+            }}
+        """
