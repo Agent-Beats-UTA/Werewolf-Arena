@@ -60,6 +60,67 @@ docker run -p 9999:9999 green-agent
 
 The server will start on `http://0.0.0.0:9999` and expose the A2A agent card.
 
+## Testing
+
+The Green Agent includes comprehensive tests for all game phases.
+
+### Installing Test Dependencies
+
+```bash
+# Install pytest and related testing tools
+pip install pytest pytest-asyncio pytest-cov
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest tests/
+
+# Run all tests with verbose output
+pytest tests/ -v
+
+# Run specific phase tests
+pytest tests/test_night.py
+pytest tests/test_voting.py
+pytest tests/test_bidding.py
+pytest tests/test_discussion.py
+pytest tests/test_round_end.py
+pytest tests/test_game_end.py
+
+# Run tests with coverage report
+pytest tests/ --cov=src --cov-report=html
+
+# Run tests and stop at first failure
+pytest tests/ -x
+
+# Run tests matching a specific pattern
+pytest tests/ -k "test_night"
+```
+
+### Test Structure
+
+- **tests/conftest.py**: Shared fixtures and test utilities
+  - Mock messenger, game state, and participant fixtures
+  - Sample response fixtures for different phases
+
+- **tests/test_night.py**: Night phase tests (fully implemented)
+  - Werewolf elimination logic
+  - Seer investigation logic
+  - JSON parsing and prompt validation
+
+- **tests/test_voting.py**: Voting phase tests (fully implemented)
+  - Vote collection and tallying
+  - Elimination logic
+  - Event logging
+
+- **tests/test_bidding.py**: Bidding phase tests (placeholder)
+- **tests/test_discussion.py**: Discussion phase tests (placeholder)
+- **tests/test_round_end.py**: Round end phase tests (placeholder)
+- **tests/test_game_end.py**: Game end phase tests (placeholder)
+
+Placeholder tests contain detailed comments describing expected behavior and serve as documentation for implementation.
+
 ## Game Flow
 
 1. Receive `EvalRequest` with participant agent URLs
