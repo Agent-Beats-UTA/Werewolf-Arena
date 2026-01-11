@@ -14,7 +14,7 @@ from src.models.enum.Status import Status
 
 class GameData(BaseModel):
     current_round: int
-    winner: Optional[str]  # "werewolves", "villagers", or None
+    winner: Optional[str]
     turns_to_speak_per_round: int
     participants: Dict[int, List[Participant]]
     werewolf:Participant

@@ -1,10 +1,10 @@
 from typing import List, Tuple
+import json
 
 from src.models.abstract.Phase import Phase
-from greenAgent.src.game.Game import Game
+from src.game.Game import Game
 from src.a2a.messenger import Messenger
 from src.models.Event import Event
-
 from src.models.enum.EventType import EventType
 
 class Night(Phase):
@@ -29,13 +29,11 @@ class Night(Phase):
             url=game_state.werewolf.url
         )
 
-        # TODO: How do we parse a player Id and a reason from the A2A agent response.
-        # The shape of the model response is to be defined by the purple agent. in this case I would just expect
-        # Vote: <<player Id>>
-        # Reason: <<vote reason>>
+        # Parse JSON response from agent
+        parsed = self._parse_json_response(response)
+        player = parsed["player_id"]
+        rationale = parsed["reason"]
 
-        player, rationale = response
-        
         self.game.state.eliminate_player(player, rationale)
         werewolf_elimintion_event = Event(
             type=EventType.WEREWOLF_ELIMINATION,
@@ -57,15 +55,17 @@ class Night(Phase):
             url=game_state.seer.url
         )
 
-        #TODO: Need to figure out how to properly parse specific info from agent response
+        # Parse JSON response from agent
+        parsed = self._parse_json_response(response)
+        player = parsed["player_id"]
+        rationale = parsed["reason"]
 
-        player, rationale = response
         seer_investigation_event = Event(
             type=EventType.SEER_INVESTIGATION,
             player=self.game.state.seer.id,
             description=rationale
         )
-        
+
         self.game.log_event(seer_investigation_event)
 
         response = self.messenger.talk_to_agent(
@@ -75,7 +75,36 @@ class Night(Phase):
             )
         )
 
-    # Helpers    
+    # Helpers
+    def _parse_json_response(self, response: str) -> dict:
+        """
+        Parse JSON response from agent.
+        Expected format: {"player_id": "...", "reason": "..."}
+        """
+        try:
+            # Try to parse the entire response as JSON
+            return json.loads(response)
+        except json.JSONDecodeError:
+            # If that fails, try to extract JSON from markdown code blocks
+            # Sometimes LLMs wrap JSON in ```json ... ```
+            json_match = response.find("```json")
+            if json_match != -1:
+                start = response.find("\n", json_match) + 1
+                end = response.find("```", start)
+                json_str = response[start:end].strip()
+                return json.loads(json_str)
+
+            # Try without the json marker
+            json_match = response.find("```")
+            if json_match != -1:
+                start = response.find("\n", json_match) + 1
+                end = response.find("```", start)
+                json_str = response[start:end].strip()
+                return json.loads(json_str)
+
+            # If all else fails, raise an error with the response
+            raise ValueError(f"Could not parse JSON from agent response: {response}")
+
     def is_werewolf(self, player_id:str):
         return self.game.state.werewolf.id == player_id
     
@@ -99,6 +128,12 @@ class Night(Phase):
             {seen_participants}
 
             Be sure to also explain why you are choosing to investigate this player.
+
+            Respond with a JSON object in the following format:
+            {{
+                "player_id": "the player ID you want to investigate",
+                "reason": "your explanation for why you are investigating this player"
+            }}
         """
 
     def get_werewolf_prompt(self, round_num:int, participants:List[str]):
@@ -112,6 +147,12 @@ class Night(Phase):
             {participants_list}
 
             Be sure to also explain why you are choosing to eliminate this player.
+
+            Respond with a JSON object in the following format:
+            {{
+                "player_id": "the player ID you want to eliminate",
+                "reason": "your explanation for why you are eliminating this player"
+            }}
         """
 
     def get_seer_reveal_prompt(self, player_id:str, is_werewolf:bool):
