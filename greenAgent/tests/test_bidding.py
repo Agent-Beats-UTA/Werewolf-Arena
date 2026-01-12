@@ -155,7 +155,8 @@ class TestBiddingPhase:
         await bidding.collect_round_bids()
 
         # Verify events were logged for each bid
-        logged_events = [call.args[0] for call in mock_game.log_event.call_args_list]
+        # log_event signature is (round, event), so event is at args[1]
+        logged_events = [call.args[1] for call in mock_game.log_event.call_args_list]
         bid_events = [e for e in logged_events if e.type == EventType.BID_PLACED]
 
         assert len(bid_events) == len(sample_participants)

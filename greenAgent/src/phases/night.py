@@ -1,30 +1,36 @@
-from typing import List, Tuple
+from typing import List, Tuple, TYPE_CHECKING
 import json
 
 from src.models.abstract.Phase import Phase
-from src.game.Game import Game
-from src.a2a.messenger import Messenger
 from src.models.Event import Event
 from src.models.enum.EventType import EventType
+from src.models.enum.EliminationType import EliminationType
+
+if TYPE_CHECKING:
+    from src.game.Game import Game
+    from src.a2a.messenger import Messenger
 
 class Night(Phase):
-    def __init__(self, game:Game, messenger:Messenger):
+    def __init__(self, game: "Game", messenger: "Messenger"):
         super().__init__(game, messenger)
-        
-    def run(self):
-        self.execute_werewolf_kill()
-        self.execute_seer_investigation()
-        
+
+    async def run(self):
+        await self.execute_werewolf_kill()
+        await self.execute_seer_investigation()
+
         self.game.log_event(self.game.state.current_round, Event(type=EventType.NIGHT_END))
 
-    def execute_werewolf_kill(self):
+    async def execute_werewolf_kill(self):
         game_state = self.game.state
+        current_participants = game_state.participants.get(game_state.current_round, [])
+        participant_ids = [p.id for p in current_participants]
+
         ## In this phase I need to do the following:
         ## 1. Send the werewolf an A2A task asking it to pick one participant to kill and explain why, wait for a response
-        response = self.messenger.talk_to_agent(
+        response = await self.messenger.talk_to_agent(
             message=self.get_werewolf_prompt(
                 round_num=game_state.current_round,
-                participants=list(game_state.participants.keys())
+                participants=participant_ids
             ),
             url=game_state.werewolf.url
         )
@@ -34,22 +40,24 @@ class Night(Phase):
         player = parsed["player_id"]
         rationale = parsed["reason"]
 
-        self.game.state.eliminate_player(player, rationale)
+        self.game.state.eliminate_player(player, EliminationType.NIGHT_KILL)
         werewolf_elimintion_event = Event(
             type=EventType.WEREWOLF_ELIMINATION,
             eliminated_player=player,
             description=rationale
         )
-        self.game.log_event(werewolf_elimintion_event)
+        self.game.log_event(game_state.current_round, werewolf_elimintion_event)
         game_state.latest_werewolf_kill = player
 
-    def execute_seer_investigation(self):
+    async def execute_seer_investigation(self):
         game_state = self.game.state
+        current_participants = game_state.participants.get(game_state.current_round, [])
+        participant_ids = [p.id for p in current_participants]
 
-        response = self.messenger.talk_to_agent(
+        response = await self.messenger.talk_to_agent(
             message=self.get_seer_prompt(
             round_num=game_state.current_round,
-            participants=list(game_state.participants.keys()),
+            participants=participant_ids,
             previous_checks=game_state.seer_checks
             ),
             url=game_state.seer.url
@@ -66,45 +74,17 @@ class Night(Phase):
             description=rationale
         )
 
-        self.game.log_event(seer_investigation_event)
+        self.game.log_event(game_state.current_round, seer_investigation_event)
 
-        response = self.messenger.talk_to_agent(
+        response = await self.messenger.talk_to_agent(
             message=self.get_seer_reveal_prompt(
                 player_id=player,
                 is_werewolf=self.is_werewolf(player)
-            )
+            ),
+            url=game_state.seer.url
         )
 
     # Helpers
-    def _parse_json_response(self, response: str) -> dict:
-        """
-        Parse JSON response from agent.
-        Expected format: {"player_id": "...", "reason": "..."}
-        """
-        try:
-            # Try to parse the entire response as JSON
-            return json.loads(response)
-        except json.JSONDecodeError:
-            # If that fails, try to extract JSON from markdown code blocks
-            # Sometimes LLMs wrap JSON in ```json ... ```
-            json_match = response.find("```json")
-            if json_match != -1:
-                start = response.find("\n", json_match) + 1
-                end = response.find("```", start)
-                json_str = response[start:end].strip()
-                return json.loads(json_str)
-
-            # Try without the json marker
-            json_match = response.find("```")
-            if json_match != -1:
-                start = response.find("\n", json_match) + 1
-                end = response.find("```", start)
-                json_str = response[start:end].strip()
-                return json.loads(json_str)
-
-            # If all else fails, raise an error with the response
-            raise ValueError(f"Could not parse JSON from agent response: {response}")
-
     def is_werewolf(self, player_id:str):
         return self.game.state.werewolf.id == player_id
     

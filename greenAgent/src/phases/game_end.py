@@ -1,9 +1,14 @@
+from typing import TYPE_CHECKING
+
 from src.models.abstract.Phase import Phase
-from src.game.Game import Game
+
+if TYPE_CHECKING:
+    from src.game.Game import Game
+    from src.a2a.messenger import Messenger
 
 class GameEnd(Phase):
-    def __init__(self, game:Game):
-        super().__init__(game)
+    def __init__(self, game: "Game", messenger: "Messenger"):
+        super().__init__(game, messenger)
         
     def run(self):
         pass

@@ -4,7 +4,7 @@ import json
 
 from src.phases.night import Night
 from src.models.enum.EventType import EventType
-from src.models.enum.Status import Status
+from src.models.enum.EliminationType import EliminationType
 
 
 class TestNightPhase:
@@ -45,8 +45,8 @@ class TestNightPhase:
         assert call_args.kwargs['url'] == mock_game.state.werewolf.url
         assert 'YOU ARE THE WEREWOLF' in call_args.kwargs['message']
 
-        # Verify elimination was logged
-        mock_game.state.eliminate_player.assert_called_once_with('villager_1', 'They seem suspicious and are deflecting attention.')
+        # Verify elimination was logged with correct elimination type
+        mock_game.state.eliminate_player.assert_called_once_with('villager_1', EliminationType.NIGHT_KILL)
 
     @pytest.mark.asyncio
     async def test_seer_investigation_execution(self, mock_game, mock_messenger, seer_investigation_response):
@@ -174,7 +174,8 @@ class TestNightPhase:
         await night.run()
 
         # Verify events were logged
-        logged_events = [call.args[0] for call in mock_game.log_event.call_args_list]
+        # log_event signature is (round, event), so event is at args[1]
+        logged_events = [call.args[1] for call in mock_game.log_event.call_args_list]
 
         # Should have werewolf elimination, seer investigation, and night end events
         assert any(event.type == EventType.WEREWOLF_ELIMINATION for event in logged_events)

@@ -1,46 +1,47 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 from src.models.enum.EventType import EventType
 from src.models.enum.Phase import Phase
-from greenAgent.src.game.GameData import GameData
+from src.game.GameData import GameData
 from src.models.Event import Event
+from src.a2a.messenger import Messenger
 
 from src.phases.night import Night
 from src.phases.bidding import Bidding
 from src.phases.voting import Voting
-from greenAgent.src.phases.debate import Discussion
+from src.phases.debate import Debate
 from src.phases.round_end import RoundEnd
 from src.phases.game_end import GameEnd
 
 class Game(BaseModel):
     current_phase: Phase
     state: GameData
-    night_controller: Night
-    bidding_controller: Bidding
-    discussion_controller: Discussion
-    voting_controller: Voting
+    messenger: Optional[Messenger] = None
+    night_controller: Optional[Night] = None
+    bidding_controller: Optional[Bidding] = None
+    debate_controller: Optional[Debate] = None
+    voting_controller: Optional[Voting] = None
 
-    def __init__(self, participants: List[str]):
+    class Config:
+        arbitrary_types_allowed = True
+
+    def __init__(self, participants: List[str], messenger: Optional[Messenger] = None):
         super().__init__(
-            current_phase=Phase.NIGHT, 
+            current_phase=Phase.NIGHT,
             state=GameData(
                 current_round=1,
-                winner=None,
-                turns_to_speak_per_round=1,  # Default
-                participants={},
-                speaking_order={},
-                chat_history={},
-                bids={},
-                votes={},
-                eliminations={}
+                turns_to_speak_per_round=1
             ),
-            night_controller = Night(),
-            voting_controller = Voting(),
-            bidding_controller = Bidding(),
-            discussion_controller = Discussion()
+            messenger=messenger
         )
-        
+
+        # Initialize phase controllers with game and messenger references
+        self.night_controller = Night(self, messenger)
+        self.voting_controller = Voting(self, messenger)
+        self.bidding_controller = Bidding(self, messenger)
+        self.debate_controller = Debate(self, messenger)
+
         for p in participants:
             self.state.add_participant(p, "")
        
@@ -69,8 +70,8 @@ class Game(BaseModel):
     def run_bidding_phase(self):
         self.bidding_controller.run()
 
-    def run_discussion_phase(self):
-        self.discussion_controller.run()
+    def run_debate_phase(self):
+        self.debate_controller.run()
 
     def run_voting_phase(self):
         self.voting_controller.run()

@@ -3,7 +3,6 @@ from unittest.mock import Mock, AsyncMock
 
 from src.phases.round_end import RoundEnd
 from src.models.enum.Phase import Phase
-from src.models.enum.Status import Status
 from src.models.enum.Role import Role
 
 
@@ -48,8 +47,8 @@ class TestRoundEndPhase:
         # Setup
         round_end = RoundEnd(mock_game)
 
-        # Mark werewolf as eliminated
-        sample_participants["werewolf"].status = Status.ELIMINATED
+        # Werewolf should be excluded from participants list (simulating elimination)
+        # active_participants = [all participants except werewolf]
 
         # Expected behavior when implemented:
         # - Should detect werewolf elimination
@@ -65,10 +64,8 @@ class TestRoundEndPhase:
         # Setup
         round_end = RoundEnd(mock_game)
 
-        # Eliminate enough villagers so werewolves equal/outnumber them
-        sample_participants["villager1"].status = Status.ELIMINATED
-        sample_participants["villager2"].status = Status.ELIMINATED
-        sample_participants["villager3"].status = Status.ELIMINATED
+        # Villagers should be excluded from participants list (simulating elimination)
+        # active_participants = [werewolf, seer]  # werewolves equal/outnumber non-werewolves
 
         # Expected behavior when implemented:
         # - Should count active werewolves vs active non-werewolves
@@ -143,9 +140,8 @@ class TestRoundEndPhase:
         # Setup
         round_end = RoundEnd(mock_game)
 
-        # Mark all players as eliminated (edge case)
-        for participant in sample_participants.values():
-            participant.status = Status.ELIMINATED
+        # All players eliminated (edge case) - participants list would be empty
+        # active_participants = []
 
         # Expected behavior when implemented:
         # - Should handle gracefully without crashing
