@@ -142,7 +142,8 @@ class TestVotingPhase:
         await voting.collect_round_votes()
 
         # Verify events were logged for each vote
-        logged_events = [call.args[0] for call in mock_game.log_event.call_args_list]
+        # log_event signature is (round, event), so event is at args[1]
+        logged_events = [call.args[1] for call in mock_game.log_event.call_args_list]
         vote_events = [e for e in logged_events if e.type == EventType.VOTE]
 
         assert len(vote_events) == len(sample_participants)
@@ -154,11 +155,15 @@ class TestVotingPhase:
         voting = Voting(mock_game, mock_messenger)
         mock_messenger.talk_to_agent.return_value = vote_response
 
-        # Mark one player as eliminated
-        sample_participants["villager1"].status = Status.ELIMINATED
+        # Exclude one player (simulating they were eliminated)
+        active_participants = [
+            sample_participants["werewolf"],
+            sample_participants["seer"],
+            sample_participants["villager2"],
+            sample_participants["villager3"]
+        ]
 
         mock_game.state.current_round = 1
-        active_participants = [p for p in sample_participants.values() if p.status == Status.ACTIVE]
         mock_game.state.participants = {1: active_participants}
         mock_game.state.votes = {1: []}
         mock_game.state.chat_history = {1: []}

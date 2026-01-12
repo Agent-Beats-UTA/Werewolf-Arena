@@ -2,7 +2,6 @@ import pytest
 from unittest.mock import Mock, AsyncMock
 
 from src.phases.game_end import GameEnd
-from src.models.enum.Status import Status
 
 
 class TestGameEndPhase:

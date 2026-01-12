@@ -3,7 +3,6 @@ from unittest.mock import AsyncMock, Mock
 
 from src.models.Participant import Participant
 from src.models.enum.Role import Role
-from src.models.enum.Status import Status
 from src.models.Message import Message
 from src.models.Event import Event
 from src.models.Vote import Vote
@@ -29,32 +28,27 @@ def sample_participants():
         "werewolf": Participant(
             id="werewolf_1",
             url="http://localhost:8001",
-            role=Role.WEREWOLF,
-            status=Status.ACTIVE
+            role=Role.WEREWOLF
         ),
         "seer": Participant(
             id="seer_1",
             url="http://localhost:8002",
-            role=Role.SEER,
-            status=Status.ACTIVE
+            role=Role.SEER
         ),
         "villager1": Participant(
             id="villager_1",
             url="http://localhost:8003",
-            role=Role.VILLAGER,
-            status=Status.ACTIVE
+            role=Role.VILLAGER
         ),
         "villager2": Participant(
             id="villager_2",
             url="http://localhost:8004",
-            role=Role.VILLAGER,
-            status=Status.ACTIVE
+            role=Role.VILLAGER
         ),
         "villager3": Participant(
             id="villager_3",
             url="http://localhost:8005",
-            role=Role.VILLAGER,
-            status=Status.ACTIVE
+            role=Role.VILLAGER
         ),
     }
 
@@ -62,13 +56,14 @@ def sample_participants():
 @pytest.fixture
 def game_state(sample_participants):
     """Create a basic game state for testing."""
-    participants_dict = {p.id: p for p in sample_participants.values()}
+    # participants is a dict mapping round number to list of participants
+    participants_list = list(sample_participants.values())
 
     state = GameData(
         current_round=1,
         winner=None,
         turns_to_speak_per_round=1,
-        participants=participants_dict,
+        participants={1: participants_list},
         werewolf=sample_participants["werewolf"],
         seer=sample_participants["seer"],
         villagers=[
@@ -91,7 +86,28 @@ def game_state(sample_participants):
 def mock_game(game_state, mock_messenger):
     """Create a mock game instance with initialized state."""
     game = Mock(spec=Game)
-    game.state = game_state
+
+    # Create a mock state that has all the attributes from game_state
+    # but allows us to mock methods
+    mock_state = Mock()
+    mock_state.current_round = game_state.current_round
+    mock_state.winner = game_state.winner
+    mock_state.turns_to_speak_per_round = game_state.turns_to_speak_per_round
+    mock_state.participants = game_state.participants
+    mock_state.werewolf = game_state.werewolf
+    mock_state.seer = game_state.seer
+    mock_state.villagers = game_state.villagers
+    mock_state.speaking_order = game_state.speaking_order
+    mock_state.chat_history = game_state.chat_history
+    mock_state.bids = game_state.bids
+    mock_state.votes = game_state.votes
+    mock_state.eliminations = game_state.eliminations
+    mock_state.events = game_state.events
+    mock_state.seer_checks = game_state.seer_checks
+    mock_state.latest_werewolf_kill = getattr(game_state, 'latest_werewolf_kill', None)
+    mock_state.eliminate_player = Mock()
+
+    game.state = mock_state
     game.messenger = mock_messenger
     game.log_event = Mock()
     return game

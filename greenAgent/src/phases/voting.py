@@ -1,19 +1,23 @@
+from typing import List, TYPE_CHECKING
+
 from src.models.abstract.Phase import Phase
 from src.models import Message, Participant, Event, Vote
 from src.models.enum.EventType import EventType
-from src.game.Game import Game
-from src.a2a.messenger import Messenger
-from typing import List
+from src.models.enum.EliminationType import EliminationType
+
+if TYPE_CHECKING:
+    from src.game.Game import Game
+    from src.a2a.messenger import Messenger
 
 class Voting(Phase):
-    def __init__(self, game:Game, messenger:Messenger):
+    def __init__(self, game: "Game", messenger: "Messenger"):
         super().__init__(game, messenger)
-        
-    def run(self):
-        self.collect_round_votes()
+
+    async def run(self):
+        await self.collect_round_votes()
         self.tally_and_eliminate()
-        
-    def collect_round_votes(self) :        
+
+    async def collect_round_votes(self):        
         game_state = self.game.state
         current_round = game_state.current_round
         
@@ -22,7 +26,7 @@ class Voting(Phase):
         
         #Send prompt for player vote
         for participant in current_participants:
-            response = self.messenger.talk_to_agent(
+            response = await self.messenger.talk_to_agent(
                 message=self.get_vote_prompt(
                     user_role=participant.role,
                     participants=current_participants,
@@ -51,8 +55,8 @@ class Voting(Phase):
                 player=participant.id,
                 description=f"Voted for {voted_for} for rationale: {rationale}"
             )
-            
-            self.game.log_event(player_vote_event)
+
+            self.game.log_event(current_round, player_vote_event)
         
     def tally_and_eliminate(self):
         game_state = self.game.state
@@ -73,14 +77,14 @@ class Voting(Phase):
         # Find player with most votes
         for player, num_votes in player_votes.items():
             player_tup = (player,num_votes)
-            
+
             if player_to_eliminate == None:
                 player_to_eliminate = player_tup
             elif num_votes > player_to_eliminate[1]:
                 player_to_eliminate = player_tup
-                
+
         #Eliminate player
-        game_state.eliminate_player(player_tup[0])
+        game_state.eliminate_player(player_tup[0], EliminationType.VOTED_OUT)
             
     # Prompts
     def get_vote_prompt(self, user_role:str, messages:List[Message], participants:List[Participant]):

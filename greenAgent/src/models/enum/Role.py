@@ -1,7 +1,6 @@
 from enum import Enum, auto
-from pydantic import BaseModel
 
-class Role(BaseModel):
+class Role(Enum):
     WEREWOLF = auto()
     VILLAGER = auto()
     SEER = auto()

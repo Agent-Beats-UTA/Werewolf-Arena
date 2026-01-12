@@ -10,13 +10,12 @@ from a2a.utils import get_message_text, new_agent_text_message
 
 from src.a2a.messenger import Messenger
 from src.models.EvalRequest import EvalRequest
-from greenAgent.src.game.Game import Game
+from src.game.Game import Game
 from src.models.Participant import Participant
 from src.models.enum.Phase import Phase
 
 from uuid import uuid4
 
-from src.models.enum.Status import Status
 from src.models.enum.Role import Role
 
 class GreenAgent:
@@ -68,10 +67,10 @@ class GreenAgent:
                 TaskState.working, new_agent_text_message("Bidding phase ended, started discussion")
             )
             
-            #Discussion phase
-            self.game.run_discussion_phase()
+            #Debate phase
+            self.game.run_debate_phase()
             await updater.update_status(
-                TaskState.working, new_agent_text_message("discussion phase ended, starting voting")
+                TaskState.working, new_agent_text_message("debate phase ended, starting voting")
             )
             
             #Voting phase
@@ -127,7 +126,7 @@ class GreenAgent:
                     participant = Participant(
                         id=str(uuid4()),
                         url=url,
-                        status=Status.ACTIVE
+                        role=Role.VILLAGER  # Default role, will be reassigned below
                     )
                     
                     while role_assigned == False:

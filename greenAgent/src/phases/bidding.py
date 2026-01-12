@@ -1,27 +1,30 @@
+from typing import List, TYPE_CHECKING
+
 from src.models.abstract.Phase import Phase
-from src.game.Game import Game
 from src.models.Bid import Bid
 from src.models.Event import Event
 from src.models.enum.EventType import EventType
 
-from typing import List
+if TYPE_CHECKING:
+    from src.game.Game import Game
+    from src.a2a.messenger import Messenger
 
 class Bidding(Phase):
-    def __init__(self, game:Game):
-        super().__init__(game)
+    def __init__(self, game: "Game", messenger: "Messenger"):
+        super().__init__(game, messenger)
 
-    def run(self):
-        self.collect_round_bids()
+    async def run(self):
+        await self.collect_round_bids()
         self.tally_bids_and_set_order()
-        
-    def collect_round_bids(self):
+
+    async def collect_round_bids(self):
         game_state = self.game.state
         current_round = game_state.current_round
 
         current_participants = game_state.participants[current_round]
 
         for participant in current_participants:
-            response = self.messenger.talk_to_agent(
+            response = await self.messenger.talk_to_agent(
                 message=self.get_bid_prompt(
                     user_role=participant.role,
                     bids=game_state.bids.get(current_round, [])
@@ -49,8 +52,8 @@ class Bidding(Phase):
                 player=participant.id,
                 description=f"Placed a bid of {bid_amount} points for rationale: {reason}"
             )
-            
-            self.game.log_event(bid_event)
+
+            self.game.log_event(current_round, bid_event)
 
     def tally_bids_and_set_order(self):
         game_state = self.game.state
@@ -70,8 +73,8 @@ class Bidding(Phase):
             player="System",
             description=f"Speaking order for round {current_round} set as: {', '.join(speaking_order)}"
         )
-        
-        self.game.log_event(order_event)
+
+        self.game.log_event(current_round, order_event)
 
     # Prompts
     def get_bid_prompt(self, user_role:str, bids:List[Bid]) -> str:
