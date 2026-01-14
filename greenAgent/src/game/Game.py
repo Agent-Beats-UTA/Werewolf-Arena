@@ -25,7 +25,6 @@ class Game(BaseModel):
     round_end_controller: Optional[RoundEnd] = None
     game_end_controller: Optional[GameEnd] = None
 
-
     class Config:
         arbitrary_types_allowed = True
 

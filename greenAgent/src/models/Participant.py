@@ -1,85 +1,123 @@
+import json
+from typing import Optional, TYPE_CHECKING, Any
+
 from pydantic import BaseModel
 from src.models.enum.Role import Role
-from src.game.AgentState import AgentState
-from src.game.GameData import GameData
-from src.models.Bid import Bid
-from src.models.Message import Message
+from src.services.llm import LLM
+from src.a2a.messenger import Messenger
 
-from typing import List
+if TYPE_CHECKING:
+    from src.game.AgentState import AgentState
+    from src.game.GameData import GameData
 
 class Participant(BaseModel):
-    id:str
-    url:str
+    model_config = {"arbitrary_types_allowed": True}
+
+    id: str
     role: Role
-    game_data: GameData
-    simulated: bool
-    simulated_state: AgentState
-    
-    def __init__(self, id:str, url:str, role:Role, simulated:bool, game_data: GameData):
-        super().__init__(
-            id = id,
-            role = role,
-            simulated = simulated,
-            game_data = game_data
-        )
-        
-        if simulated == True:
-            self.simulated_state = AgentState(game_data)
+    game_data: Any  # GameData at runtime
+    use_llm: bool
+    messenger: Any  # Messenger at runtime
+    llm_state: Optional[Any] = None  # AgentState at runtime
+    url: Optional[str] = None
+    llm: Optional[Any] = None  # LLM at runtime
+
+    #Messaging
+    async def talk_to_agent(self, prompt: str):
+        if self.use_llm:
+            response = self.llm.execute_prompt(prompt=prompt)
         else:
-            self.url = url
-            
+            response = await self.messenger.talk_to_agent(
+                message=prompt,
+                url=self.url
+            )
+
+        parsed = self.parse_json_response(response)
+        return parsed
+        
+    def parse_json_response(self, response: str) -> dict:
+        """
+        Parse JSON response from agent.
+        Expected format varies by phase, but generally: {"key": "value", ...}
+        """
+        try:
+            # Try to parse the entire response as JSON
+            return json.loads(response)
+        except json.JSONDecodeError:
+            # If that fails, try to extract JSON from markdown code blocks
+            # Sometimes LLMs wrap JSON in ```json ... ```
+            json_match = response.find("```json")
+            if json_match != -1:
+                start = response.find("\n", json_match) + 1
+                end = response.find("```", start)
+                json_str = response[start:end].strip()
+                return json.loads(json_str)
+
+            # Try without the json marker
+            json_match = response.find("```")
+            if json_match != -1:
+                start = response.find("\n", json_match) + 1
+                end = response.find("```", start)
+                json_str = response[start:end].strip()
+                return json.loads(json_str)
+
+            # If all else fails, raise an error with the response
+            raise ValueError(f"Could not parse JSON from agent response: {response}")
+        
+    
     #Helpers
-    def get_simulated_agent_state_prompt(self):
+    def get_llm_context_prompt(self):
         return f"""
-            You are a simulated participant in a game of werewolf. Here is your memories of the game this far
-            
+            You are a participant in a game of werewolf. Here are your memories of the game so far:
+
             Your role: {self.role}
-            Who you suspect and why: {self.simulated_state.suspects}
+            Who you suspect and why: {self.llm_state.suspects}
         """
             
-            
     # Prompts
-    def get_vote_prompt(self, user_role:str, messages:List[Message], participants:List[Participant]):
-        messages_w_ids = [f"{message.sender_id} - {message.content}" for message in messages]
-        participant_ids = [p.id for p in participants]
-        
-        if self.simulated:
-            simulated_message = self.get_simulated_agent_state_prompt()
-        else:
-            simulated_message = ""
-        
+    def get_vote_prompt(self) -> str:
+        current_round = self.game_data.current_round
+        messages = self.game_data.chat_history.get(current_round, [])
+        participants = self.game_data.participants.get(current_round, [])
+
+        messages_w_ids = [f"{msg.sender_id} - {msg.content}" for msg in messages]
+        participant_ids = [p.id for p in participants if p.id != self.id]
+
+        llm_context = self.get_llm_context_prompt() if self.use_llm else ""
+
         return f"""
-                {simulated_message}
-                
-                It's time to vote for a player to eliminate:
-                
-                remember your role is: {user_role}
-                
-                Here is all of the conversations from this round:
-                {"\n".join(messages_w_ids)}
-                
-                Pick a single player to eliminate and provide an explination as to why.
-                Here are a list of players to chose from:
-                {"\n".join(participant_ids)}
-                
-                Be sure to provide you response in JSON format as follows:
-                {{
-                    "player_id": "the player ID you want to eliminate",
-                    "reason": "your explanation for why you are eliminating this player"
-                }}
-            """
-        
-    def get_werewolf_prompt(self, round_num:int, participants:List[str]):
-        if self.simulated:
-            simulated_message = self.get_simulated_agent_state_prompt()
-        else:
-            simulated_message = ""
-            
-        participants_list = "\n".join([f"- {p}" for p in participants])
+            {llm_context}
+
+            It's time to vote for a player to eliminate.
+
+            Your role is: {self.role.name}
+
+            Here is all of the conversations from this round:
+            {chr(10).join(messages_w_ids)}
+
+            Pick a single player to eliminate and provide an explanation as to why.
+            Here are the players to choose from:
+            {chr(10).join(participant_ids)}
+
+            Respond in JSON format:
+            {{
+                "player_id": "the player ID you want to eliminate",
+                "reason": "your explanation for why you are eliminating this player"
+            }}
+        """
+
+    def get_werewolf_prompt(self) -> str:
+        current_round = self.game_data.current_round
+        participants = self.game_data.participants.get(current_round, [])
+        participant_ids = [p.id for p in participants if p.id != self.id]
+
+        llm_context = self.get_llm_context_prompt() if self.use_llm else ""
+        participants_list = "\n".join([f"- {p}" for p in participant_ids])
+
         return f"""
-            {simulated_message}
-            
-            ROUND {round_num}:
+            {llm_context}
+
+            ROUND {current_round}:
 
             YOU ARE THE WEREWOLF
 
@@ -95,44 +133,113 @@ class Participant(BaseModel):
             }}
         """
 
-    def get_seer_reveal_prompt(self, player_id:str, is_werewolf:bool):
-        if self.simulated:
-            simulated_message = self.get_simulated_agent_state_prompt()
-        else:
-            simulated_message = ""
-            
+    def get_seer_prompt(self) -> str:
+        current_round = self.game_data.current_round
+        participants = self.game_data.participants.get(current_round, [])
+        previous_checks = self.game_data.seer_checks
+
+        llm_context = self.get_llm_context_prompt() if self.use_llm else ""
+
+        previous_checked_names = [name for name, _ in previous_checks]
+        remaining = [p.id for p in participants if p.id not in previous_checked_names and p.id != self.id]
+        remaining_list = "\n".join([f"- {p}" for p in remaining])
+        checked_list = "\n".join([f"- {name} is werewolf: {result}" for name, result in previous_checks])
+
         return f"""
-            {simulated_message}
+            {llm_context}
+
+            ROUND {current_round}:
+
+            YOU ARE THE SEER
+
+            Pick one participant to investigate. If you already know who the werewolf is, you don't have
+            to investigate someone again.
+
+            Participants you have not checked:
+            {remaining_list if remaining_list else "None"}
+
+            Participants you have checked:
+            {checked_list if checked_list else "None"}
+
+            Explain why you are choosing to investigate this player.
+
+            Respond with a JSON object in the following format:
+            {{
+                "player_id": "the player ID you want to investigate",
+                "reason": "your explanation for why you are investigating this player"
+            }}
+        """
+
+    def get_seer_reveal_prompt(self, player_id: str, is_werewolf: bool) -> str:
+        llm_context = self.get_llm_context_prompt() if self.use_llm else ""
+
+        return f"""
+            {llm_context}
+
             Here are the results of your investigation:
 
             You investigated player: {player_id}
             They {"are" if is_werewolf else "are not"} the werewolf
-
         """
-        
-    def get_bid_prompt(self, user_role:str, bids:List[Bid]) -> str:
-        if self.simulated:
-            simulated_message = self.get_simulated_agent_state_prompt()
-        else:
-            simulated_message = ""
-            
+
+    def get_bid_prompt(self) -> str:
+        current_round = self.game_data.current_round
+        bids = self.game_data.bids.get(current_round, [])
+
+        llm_context = self.get_llm_context_prompt() if self.use_llm else ""
+        bids_list = "\n".join([f"- Participant {bid.participant_id}: {bid.amount} points" for bid in bids])
+
         return f"""
-            {simulated_message}
-             
+            {llm_context}
+
             It is time to place your bid for speaking order in the upcoming debate round.
-            You are playing as a {user_role}.
+            You are playing as a {self.role.name}.
 
             Place a bid between 0 and 100 points to determine your speaking order.
 
             Remember, your bid will determine when you get to speak, with higher bids allowing you to speak earlier.
-            Consider your strategy carefully based on the current state of the game and the messages exchanged so far.
+            Consider your strategy carefully based on the current state of the game.
 
-            Here are the current bids from all participants:
-            {"\n".join([f"- Participant {bid.participant_id}: {bid.amount} points" for bid in bids])}
+            Current bids from other participants:
+            {bids_list if bids_list else "No bids yet."}
 
-            Be sure to response in JSON format as follows:
+            Respond in JSON format:
             {{
-                "bid_amount": <your_bid_amount>
+                "bid_amount": <your_bid_amount>,
                 "reason": "your explanation for your bid"
+            }}
+        """
+
+    def get_debate_prompt(self) -> str:
+        current_round = self.game_data.current_round
+        messages = self.game_data.chat_history.get(current_round, [])
+        speaking_order = self.game_data.speaking_order.get(current_round, [])
+        latest_kill = self.game_data.latest_werewolf_kill
+
+        llm_context = self.get_llm_context_prompt() if self.use_llm else ""
+        messages_str = "\n".join([f"{msg.sender_id}: {msg.content}" for msg in messages])
+        order_str = ", ".join(speaking_order)
+
+        night_info = f"Last night, {latest_kill} was eliminated by the werewolf." if latest_kill else ""
+
+        return f"""
+            {llm_context}
+
+            ROUND {current_round} - Debate Phase
+
+            Your role is: {self.role.name}
+
+            {night_info}
+
+            Speaking order: {order_str}
+
+            Conversation so far:
+            {messages_str if messages_str else "No messages yet."}
+
+            Share your thoughts with the group. Try to identify the werewolf (or deflect suspicion if you are the werewolf).
+
+            Respond in JSON format:
+            {{
+                "message": "your message to the group"
             }}
         """

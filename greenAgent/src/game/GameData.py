@@ -1,8 +1,7 @@
 from pydantic import BaseModel
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TYPE_CHECKING, Any
 
 from src.models.enum.EliminationType import EliminationType
-from src.models.Participant import Participant
 from src.models.Message import Message
 from src.models.Vote import Vote
 from src.models.Elimination import Elimination
@@ -11,14 +10,19 @@ from src.models.Bid import Bid
 
 from src.models.enum.Role import Role
 
+if TYPE_CHECKING:
+    from src.models.Participant import Participant
+
 class GameData(BaseModel):
+    model_config = {"arbitrary_types_allowed": True}
+
     current_round: int
     winner: Optional[str] = None
     turns_to_speak_per_round: int
-    participants: Dict[int, List[Participant]] = {}
-    werewolf: Optional[Participant] = None
-    seer: Optional[Participant] = None
-    villagers: List[Participant] = []
+    participants: Dict[int, List[Any]] = {}  # List[Participant] at runtime
+    werewolf: Optional[Any] = None  # Participant at runtime
+    seer: Optional[Any] = None  # Participant at runtime
+    villagers: List[Any] = []  # List[Participant] at runtime
     speaking_order: Dict[int, List[str]] = {}
     chat_history: Dict[int, List[Message]] = {}
     bids: Dict[int, List[Bid]] = {}

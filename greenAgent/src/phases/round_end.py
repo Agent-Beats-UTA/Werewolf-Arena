@@ -14,7 +14,7 @@ class RoundEnd(Phase):
     def __init__(self, game: "Game", messenger: "Messenger"):
         super().__init__(game, messenger)
         
-    def run(self):
+    async def run(self):
         self.check_win_conditions()
         self.log_event(EventType.ROUND_END)
         

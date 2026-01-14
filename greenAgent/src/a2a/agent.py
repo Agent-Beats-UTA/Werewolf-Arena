@@ -17,10 +17,17 @@ from src.models.enum.Phase import Phase
 from uuid import uuid4
 
 from src.models.enum.Role import Role
+from src.services.llm import LLM
 
 class GreenAgent:
     """Runs Werewolf evaluation"""
-    
+
+    # Required roles for game participants
+    required_roles: set = set()  # No required roles - participant can be any role
+
+    # Required config keys for game setup
+    required_config_keys: set = set()  # No required config keys by default
+
     def __init__(self):
         self.messenger = Messenger()
         self.game = Game([])
@@ -105,7 +112,7 @@ class GreenAgent:
             )
             
         analytics = await self.game.run_game_end_phase()
-            
+
         await updater.add_artifact(
             parts=[
                 Part(root=TextPart(text=analytics.get("summary_text", "Game complete."))),
@@ -113,71 +120,89 @@ class GreenAgent:
             ],
             name="Result",
         )
-        
-        #Helpers
-        def init_game(self, participant_url: str, participant_role: Role):
-            """
-            Takes one participant URL and their role, then creates simulated participants
-            to fill out the rest of the game (3 villagers, 2 werewolves, 1 seer total)
 
-            :param participant_url: URL of the real participant agent
-            :type participant_url: str
-            :param participant_role: Role assigned to the real participant
-            :type participant_role: Role
-            """
-            # Game composition: 3 villagers, 2 werewolves, 1 seer
-            needed_roles = {
-                Role.VILLAGER: 3,
-                Role.WEREWOLF: 2,
-                Role.SEER: 1
-            }
+    def init_game(self, participant_url: str, participant_role: Role):
+        """
+        Takes one participant URL and their role, then creates LLM-based participants
+        to fill out the rest of the game (3 villagers, 2 werewolves, 1 seer total)
 
-            # Decrease the count for the real participant's role
-            needed_roles[participant_role] -= 1
+        :param participant_url: URL of the real participant agent
+        :type participant_url: str
+        :param participant_role: Role assigned to the real participant
+        :type participant_role: Role
+        """
+        # Game composition: 3 villagers, 2 werewolves, 1 seer
+        needed_roles = {
+            Role.VILLAGER: 3,
+            Role.WEREWOLF: 2,
+            Role.SEER: 1
+        }
 
-            all_participants = []
+        # Decrease the count for the real participant's role
+        needed_roles[participant_role] -= 1
 
-            # Create the real participant
-            real_participant = Participant(
-                id=str(uuid4()),
-                url=participant_url,
-                role=participant_role,
-                simulated=False,
-                game_data=self.game.state
-            )
-            all_participants.append(real_participant)
+        all_participants = []
 
-            # Create simulated participants for remaining roles
-            for role, count in needed_roles.items():
-                for _ in range(count):
-                    simulated_participant = Participant(
-                        id=str(uuid4()),
-                        url="",  # Simulated participants don't have URLs
-                        role=role,
-                        simulated=True,
-                        game_data=self.game.state
-                    )
-                    all_participants.append(simulated_participant)
+        # Create the real participant (uses URL to talk to external agent)
+        real_participant = Participant(
+            id=str(uuid4()),
+            url=participant_url,
+            role=participant_role,
+            use_llm=False,
+            game_data=self.game.state,
+            messenger=self.messenger
+        )
+        all_participants.append(real_participant)
 
-            # Store participants in game state
-            self.game.state.participants = {p.id: p for p in all_participants}
+        # Track werewolves and seer for special role references
+        werewolves = []
+        seer = None
 
-            # Set random speaking order for round 1
-            shuffled_participants = all_participants.copy()
-            random.shuffle(shuffled_participants)
-            self.game.state.speaking_order[1] = [p.id for p in shuffled_participants]
-            
-        def validate_request(self, request: EvalRequest) -> tuple[bool, str]:
-            missing_roles = set(self.required_roles) - set(request.participants.keys())
-            if missing_roles:
-                return False, f"Missing roles: {missing_roles}"
+        if participant_role == Role.WEREWOLF:
+            werewolves.append(real_participant)
+        elif participant_role == Role.SEER:
+            seer = real_participant
 
-            missing_config_keys = set(self.required_config_keys) - set(request.config.keys())
-            if missing_config_keys:
-                return False, f"Missing config keys: {missing_config_keys}"
+        # Create LLM-based participants for remaining roles
+        for role, count in needed_roles.items():
+            for _ in range(count):
+                llm_participant = Participant(
+                    id=str(uuid4()),
+                    role=role,
+                    use_llm=True,
+                    game_data=self.game.state,
+                    messenger=self.messenger,
+                    llm=LLM()
+                )
+                all_participants.append(llm_participant)
 
-            # Add additional request validation here
+                # Track special roles
+                if role == Role.WEREWOLF:
+                    werewolves.append(llm_participant)
+                elif role == Role.SEER:
+                    seer = llm_participant
 
-            return True, "ok"
+        # Store participants by round number (round 1 initially)
+        self.game.state.participants[1] = all_participants
 
-    
+        # Assign special role references (use first werewolf for night kill decisions)
+        self.game.state.werewolf = werewolves[0] if werewolves else None
+        self.game.state.seer = seer
+
+        # Set random speaking order for round 1
+        shuffled_participants = all_participants.copy()
+        random.shuffle(shuffled_participants)
+        self.game.state.speaking_order[1] = [p.id for p in shuffled_participants]
+
+    def validate_request(self, request: EvalRequest) -> tuple[bool, str]:
+        missing_roles = set(self.required_roles) - set(request.participants.keys())
+        if missing_roles:
+            return False, f"Missing roles: {missing_roles}"
+
+        missing_config_keys = set(self.required_config_keys) - set(request.config.keys())
+        if missing_config_keys:
+            return False, f"Missing config keys: {missing_config_keys}"
+
+        # Add additional request validation here
+
+        return True, "ok"
