@@ -25,10 +25,7 @@ class Bidding(Phase):
 
         for participant in current_participants:
             response = await self.messenger.talk_to_agent(
-                message=self.get_bid_prompt(
-                    user_role=participant.role,
-                    bids=game_state.bids.get(current_round, [])
-                ),
+                message=participant.get_bid_prompt(),
                 url=participant.url
             )
             
@@ -75,24 +72,3 @@ class Bidding(Phase):
         )
 
         self.game.log_event(current_round, order_event)
-
-    # Prompts
-    def get_bid_prompt(self, user_role:str, bids:List[Bid]) -> str:
-        return f"""
-            It is time to place your bid for speaking order in the upcoming debate round.
-            You are playing as a {user_role}.
-
-            Place a bid between 0 and 100 points to determine your speaking order.
-
-            Remember, your bid will determine when you get to speak, with higher bids allowing you to speak earlier.
-            Consider your strategy carefully based on the current state of the game and the messages exchanged so far.
-
-            Here are the current bids from all participants:
-            {"\n".join([f"- Participant {bid.participant_id}: {bid.amount} points" for bid in bids])}
-
-            Be sure to response in JSON format as follows:
-            {{
-                "bid_amount": <your_bid_amount>
-                "reason": "your explanation for your bid"
-            }}
-        """

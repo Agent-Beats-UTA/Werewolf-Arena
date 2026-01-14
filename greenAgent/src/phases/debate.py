@@ -15,8 +15,6 @@ class Debate(Phase):
         game_state = self.game.state
         current_round = game_state.current_round
         speaking_order = game_state.speaking_order[current_round]
-        chat_history = game_state.chat_history.get(current_round, [])
-        night_elimination_message = self.game.get_night_elimination_message(current_round)
         participants = game_state.participants[current_round]
         # Create a dict for easy lookup by participant_id
         participants_dict = {p.id: p for p in participants}
@@ -25,12 +23,7 @@ class Debate(Phase):
             for participant_id in speaking_order:
                 participant = participants_dict[participant_id]
                 response = await self.messenger.talk_to_agent(
-                    message=self.get_debate_prompt(
-                        user_role=participant.role,
-                        chat_history=chat_history,
-                        speaking_order=speaking_order,
-                        night_elimination_message=night_elimination_message
-                    ),
+                    message=participant.get_debate_prompt(),
                     url=participant.url
                 )
 
@@ -47,30 +40,3 @@ class Debate(Phase):
                     game_state.chat_history[current_round] = []
 
                 game_state.chat_history[current_round].append(message)
-
-
-    # Prompts
-    def get_debate_prompt(self, user_role:str, chat_history:List[Message], speaking_order:List[str], night_elimination_message:str):
-        prompt = f"""
-        You are participating in the Debate phase of a Werewolf game as a {user_role}.
-        
-        The debate phase allows players to discuss and strategize before voting.
-        
-        Here is the chat history so far:
-        {"\n".join([f"{msg.sender_id}: {msg.content}" for msg in chat_history])}
-        
-        The established speaking order for this round is:
-        {', '.join(speaking_order)}
-        
-        Additionally, here is what happened during the night:
-        {night_elimination_message}
-        
-        Please contribute to the discussion in accordance with your role and the ongoing strategies.
-
-        Please respond in json format:
-        {{
-            "message": "<your message here>"
-        }}
-        """
-        return prompt
-    

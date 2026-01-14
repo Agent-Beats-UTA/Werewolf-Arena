@@ -28,10 +28,7 @@ class Night(Phase):
         ## In this phase I need to do the following:
         ## 1. Send the werewolf an A2A task asking it to pick one participant to kill and explain why, wait for a response
         response = await self.messenger.talk_to_agent(
-            message=self.get_werewolf_prompt(
-                round_num=game_state.current_round,
-                participants=participant_ids
-            ),
+            message=game_state.werewolf.get_werewolf_prompt(),
             url=game_state.werewolf.url
         )
 
@@ -114,32 +111,4 @@ class Night(Phase):
                 "player_id": "the player ID you want to investigate",
                 "reason": "your explanation for why you are investigating this player"
             }}
-        """
-
-    def get_werewolf_prompt(self, round_num:int, participants:List[str]):
-        participants_list = "\n".join([f"- {p}" for p in participants])
-        return f"""
-            ROUND {round_num}:
-
-            YOU ARE THE WEREWOLF
-
-            Pick one participant to eliminate. Here is a list of the participants:
-            {participants_list}
-
-            Be sure to also explain why you are choosing to eliminate this player.
-
-            Respond with a JSON object in the following format:
-            {{
-                "player_id": "the player ID you want to eliminate",
-                "reason": "your explanation for why you are eliminating this player"
-            }}
-        """
-
-    def get_seer_reveal_prompt(self, player_id:str, is_werewolf:bool):
-        return f"""
-            Here are the results of your investigation:
-
-            You investigated player: {player_id}
-            They {"are" if is_werewolf else "are not"} the werewolf
-
         """

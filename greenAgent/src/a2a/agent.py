@@ -51,8 +51,20 @@ class GreenAgent:
         # Replace example code below with your agent logic
         # Use request.participants to get participant agent URLs by role
         # Use request.config for assessment parameters
+
+        # Extract the first participant and their role from the request
+        if not request.participant:
+            await updater.reject(new_agent_text_message("No participant provided"))
+            return
         
-        self.init_game(request.participants)
+        if not request.role:
+            await updater.reject(new_agent_text_message("No participant role specified"))
+
+        # Get the first participant's role and URL
+        role_name, participant_url = next(iter(request.participants.items()))
+        participant_role = Role[role_name.upper()]
+
+        self.init_game(str(participant_url), participant_role)
         while game_over == False:
             
             #Night Phase
@@ -104,52 +116,53 @@ class GreenAgent:
         # )
         
         #Helpers
-        def init_game(self, participant_urls:List[str]):
+        def init_game(self, participant_url: str, participant_role: Role):
             """
-            Takes a list of agent particpants and assigns roles for the game, creates participant objects
-            and sets inital speaking order 
-            
-            :param participant_urls: Description
-            :type participant_urls: List[str]
+            Takes one participant URL and their role, then creates simulated participants
+            to fill out the rest of the game (3 villagers, 2 werewolves, 1 seer total)
+
+            :param participant_url: URL of the real participant agent
+            :type participant_url: str
+            :param participant_role: Role assigned to the real participant
+            :type participant_role: Role
             """
-            roles = [Role.VILLAGER, Role.WEREWOLF, Role.SEER]
-            
-            villagers = []
-            werewolves = []
-            seer = None
-            
-            #Assign roles to participants
-            for url in participant_urls:
-                    random_num = random.randint(1, 3)
-                    role_assigned = False
-                    
-                    participant = Participant(
+            # Game composition: 3 villagers, 2 werewolves, 1 seer
+            needed_roles = {
+                Role.VILLAGER: 3,
+                Role.WEREWOLF: 2,
+                Role.SEER: 1
+            }
+
+            # Decrease the count for the real participant's role
+            needed_roles[participant_role] -= 1
+
+            all_participants = []
+
+            # Create the real participant
+            real_participant = Participant(
+                id=str(uuid4()),
+                url=participant_url,
+                role=participant_role,
+                simulated=False,
+                game_data=self.game.state
+            )
+            all_participants.append(real_participant)
+
+            # Create simulated participants for remaining roles
+            for role, count in needed_roles.items():
+                for _ in range(count):
+                    simulated_participant = Participant(
                         id=str(uuid4()),
-                        url=url,
-                        role=Role.VILLAGER  # Default role, will be reassigned below
+                        url="",  # Simulated participants don't have URLs
+                        role=role,
+                        simulated=True,
+                        game_data=self.game.state
                     )
-                    
-                    while role_assigned == False:
-                        selected_role = roles[random_num - 1]
-                        
-                        if selected_role == 1 and villagers.count < 3:
-                            updated_participant = participant.role = selected_role
-                            villagers.append(updated_participant)
-                            role_assigned = True
-                            
-                        elif selected_role == 2 and werewolves.count < 2:
-                            updated_participant = participant.role = selected_role
-                            werewolves.append(updated_participant)
-                            role_assigned = True
-                            
-                        elif selected_role == 3 and seer == None:
-                            updated_participant = participant.role = selected_role
-                            seer = updated_participant
-                            role_assigned = True
-                            
-            all_participants = [*villagers, *werewolves, seer]
+                    all_participants.append(simulated_participant)
+
+            # Store participants in game state
             self.game.state.participants = {p.id: p for p in all_participants}
-            
+
             # Set random speaking order for round 1
             shuffled_participants = all_participants.copy()
             random.shuffle(shuffled_participants)
