@@ -104,16 +104,15 @@ class GreenAgent:
                 TaskState.working, new_agent_text_message("Game ended, compiling results and analytics")
             )
             
+        analytics = await self.game.run_game_end_phase()
             
-        # await updater.add_artifact(
-        #     parts=[
-        #         Part(root=TextPart(text="The agent performed well.")),
-        #         Part(root=DataPart(data={
-        #             # structured assessment results
-        #         }))
-        #     ],
-        #     name="Result",
-        # )
+        await updater.add_artifact(
+            parts=[
+                Part(root=TextPart(text=analytics.get("summary_text", "Game complete."))),
+                Part(root=DataPart(data=analytics))# structured assessment results
+            ],
+            name="Result",
+        )
         
         #Helpers
         def init_game(self, participant_url: str, participant_role: Role):
