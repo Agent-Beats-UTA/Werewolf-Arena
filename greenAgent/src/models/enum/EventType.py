@@ -5,6 +5,7 @@ class EventType(Enum):
     WEREWOLF_ELIMINATION = auto()
     SEER_INVESTIGATION = auto()
     VOTE = auto()
+    BID_PLACED = auto()
     DEBATE = auto()
     NIGHT_END = auto()
     ROUND_END = auto()

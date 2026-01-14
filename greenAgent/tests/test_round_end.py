@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import Mock, AsyncMock
+from unittest.mock import Mock
 
 from src.phases.round_end import RoundEnd
 from src.models.enum.Phase import Phase

@@ -1,16 +1,16 @@
-from typing import List
-from src.models.enum.Role import Role
+from typing import List, TYPE_CHECKING, Any
+
+from pydantic import BaseModel
 from src.models.Suspect import Suspect
-from src.game.GameData import GameData
 
-from pydantic import BaseClass
+if TYPE_CHECKING:
+    from src.game.GameData import GameData
 
-class AgentState(BaseClass):
-    suspects:List[Suspect] = []
-    game_data:GameData
-    
-    def __init__(self, game_data:GameData):
-        self.game_data = game_data
+class AgentState(BaseModel):
+    model_config = {"arbitrary_types_allowed": True}
+
+    suspects: List[Suspect] = []
+    game_data: Any = None  # GameData at runtime
         
     def get_werewolf_kill_prompt(self):
         pass

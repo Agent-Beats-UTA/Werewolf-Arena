@@ -1,5 +1,9 @@
 import pytest
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, MagicMock
+from dotenv import load_dotenv
+
+# Load environment variables before any other imports
+load_dotenv()
 
 from src.models.Participant import Participant
 from src.models.enum.Role import Role
@@ -22,92 +26,119 @@ def mock_messenger():
 
 
 @pytest.fixture
-def sample_participants():
+def mock_game_data():
+    """Create a mock game data for participants."""
+    game_data = Mock(spec=GameData)
+    game_data.current_round = 1
+    game_data.winner = None
+    game_data.turns_to_speak_per_round = 1
+    game_data.participants = {}
+    game_data.speaking_order = {}
+    game_data.chat_history = {}
+    game_data.bids = {}
+    game_data.votes = {}
+    game_data.eliminations = {}
+    game_data.events = {}
+    game_data.seer_checks = []
+    game_data.latest_werewolf_kill = None
+    return game_data
+
+
+def create_mock_participant(id: str, role: Role, game_data, messenger, url: str = None, use_llm: bool = True):
+    """Helper to create a mock participant with talk_to_agent mocked."""
+    participant = Mock(spec=Participant)
+    participant.id = id
+    participant.role = role
+    participant.game_data = game_data
+    participant.use_llm = use_llm
+    participant.messenger = messenger
+    participant.url = url
+    participant.llm = None
+    participant.llm_state = None
+
+    # Mock the async talk_to_agent method
+    participant.talk_to_agent = AsyncMock()
+
+    # Mock prompt methods
+    participant.get_bid_prompt = Mock(return_value="bid prompt")
+    participant.get_debate_prompt = Mock(return_value="debate prompt")
+    participant.get_vote_prompt = Mock(return_value="vote prompt")
+    participant.get_werewolf_prompt = Mock(return_value="werewolf prompt")
+    participant.get_seer_prompt = Mock(return_value="seer prompt")
+    participant.get_seer_reveal_prompt = Mock(return_value="seer reveal prompt")
+
+    return participant
+
+
+@pytest.fixture
+def sample_participants(mock_game_data, mock_messenger):
     """Create a set of sample participants for testing."""
-    return {
-        "werewolf": Participant(
+    participants = {
+        "werewolf": create_mock_participant(
             id="werewolf_1",
+            role=Role.WEREWOLF,
+            game_data=mock_game_data,
+            messenger=mock_messenger,
             url="http://localhost:8001",
-            role=Role.WEREWOLF
+            use_llm=False
         ),
-        "seer": Participant(
+        "seer": create_mock_participant(
             id="seer_1",
+            role=Role.SEER,
+            game_data=mock_game_data,
+            messenger=mock_messenger,
             url="http://localhost:8002",
-            role=Role.SEER
+            use_llm=True
         ),
-        "villager1": Participant(
+        "villager1": create_mock_participant(
             id="villager_1",
+            role=Role.VILLAGER,
+            game_data=mock_game_data,
+            messenger=mock_messenger,
             url="http://localhost:8003",
-            role=Role.VILLAGER
+            use_llm=True
         ),
-        "villager2": Participant(
+        "villager2": create_mock_participant(
             id="villager_2",
+            role=Role.VILLAGER,
+            game_data=mock_game_data,
+            messenger=mock_messenger,
             url="http://localhost:8004",
-            role=Role.VILLAGER
+            use_llm=True
         ),
-        "villager3": Participant(
+        "villager3": create_mock_participant(
             id="villager_3",
+            role=Role.VILLAGER,
+            game_data=mock_game_data,
+            messenger=mock_messenger,
             url="http://localhost:8005",
-            role=Role.VILLAGER
+            use_llm=True
         ),
     }
 
+    # Update game_data with participants
+    participants_list = list(participants.values())
+    mock_game_data.participants = {1: participants_list}
+    mock_game_data.speaking_order = {1: [p.id for p in participants_list]}
+    mock_game_data.werewolf = participants["werewolf"]
+    mock_game_data.seer = participants["seer"]
+    mock_game_data.villagers = [participants["villager1"], participants["villager2"], participants["villager3"]]
 
-@pytest.fixture
-def game_state(sample_participants):
-    """Create a basic game state for testing."""
-    # participants is a dict mapping round number to list of participants
-    participants_list = list(sample_participants.values())
-
-    state = GameData(
-        current_round=1,
-        winner=None,
-        turns_to_speak_per_round=1,
-        participants={1: participants_list},
-        werewolf=sample_participants["werewolf"],
-        seer=sample_participants["seer"],
-        villagers=[
-            sample_participants["villager1"],
-            sample_participants["villager2"],
-            sample_participants["villager3"]
-        ],
-        speaking_order={1: [p.id for p in sample_participants.values()]},
-        chat_history={},
-        bids={},
-        votes={},
-        eliminations={},
-        events={},
-        seer_checks=[]
-    )
-    return state
+    return participants
 
 
 @pytest.fixture
-def mock_game(game_state, mock_messenger):
+def mock_game(sample_participants, mock_messenger, mock_game_data):
     """Create a mock game instance with initialized state."""
     game = Mock(spec=Game)
 
-    # Create a mock state that has all the attributes from game_state
-    # but allows us to mock methods
-    mock_state = Mock()
-    mock_state.current_round = game_state.current_round
-    mock_state.winner = game_state.winner
-    mock_state.turns_to_speak_per_round = game_state.turns_to_speak_per_round
-    mock_state.participants = game_state.participants
-    mock_state.werewolf = game_state.werewolf
-    mock_state.seer = game_state.seer
-    mock_state.villagers = game_state.villagers
-    mock_state.speaking_order = game_state.speaking_order
-    mock_state.chat_history = game_state.chat_history
-    mock_state.bids = game_state.bids
-    mock_state.votes = game_state.votes
-    mock_state.eliminations = game_state.eliminations
-    mock_state.events = game_state.events
-    mock_state.seer_checks = game_state.seer_checks
-    mock_state.latest_werewolf_kill = getattr(game_state, 'latest_werewolf_kill', None)
-    mock_state.eliminate_player = Mock()
+    # Use mock_game_data as state
+    mock_game_data.eliminate_player = Mock()
+    mock_game_data.votes = {1: []}
+    mock_game_data.chat_history = {1: []}
+    mock_game_data.bids = {}
 
-    game.state = mock_state
+    game.state = mock_game_data
     game.messenger = mock_messenger
     game.log_event = Mock()
     return game
@@ -115,32 +146,32 @@ def mock_game(game_state, mock_messenger):
 
 @pytest.fixture
 def werewolf_elimination_response():
-    """Sample JSON response for werewolf elimination."""
-    return '{"player_id": "villager_1", "reason": "They seem suspicious and are deflecting attention."}'
+    """Sample parsed response for werewolf elimination."""
+    return {"player_id": "villager_1", "reason": "They seem suspicious and are deflecting attention."}
 
 
 @pytest.fixture
 def seer_investigation_response():
-    """Sample JSON response for seer investigation."""
-    return '{"player_id": "werewolf_1", "reason": "I want to check if they are the werewolf based on their behavior."}'
+    """Sample parsed response for seer investigation."""
+    return {"player_id": "werewolf_1", "reason": "I want to check if they are the werewolf based on their behavior."}
 
 
 @pytest.fixture
 def vote_response():
-    """Sample JSON response for voting."""
-    return '{"player_id": "villager_2", "reason": "Based on the discussion, I believe they are most likely the werewolf."}'
+    """Sample parsed response for voting."""
+    return {"player_id": "villager_2", "reason": "Based on the discussion, I believe they are most likely the werewolf."}
 
 
 @pytest.fixture
 def bid_response():
-    """Sample JSON response for bidding."""
-    return '{"bid_amount": 50, "reason": "I have important information to share."}'
+    """Sample parsed response for bidding."""
+    return {"bid_amount": 50, "reason": "I have important information to share."}
 
 
 @pytest.fixture
 def debate_message_response():
-    """Sample JSON response for debate message."""
-    return '{"message": "I think we should carefully consider all the evidence before voting."}'
+    """Sample parsed response for debate message."""
+    return {"message": "I think we should carefully consider all the evidence before voting."}
 
 
 @pytest.fixture

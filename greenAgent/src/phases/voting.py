@@ -1,7 +1,7 @@
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from src.models.abstract.Phase import Phase
-from src.models import Message, Participant, Event, Vote
+from src.models import Event, Vote
 from src.models.enum.EventType import EventType
 from src.models.enum.EliminationType import EliminationType
 
@@ -22,18 +22,15 @@ class Voting(Phase):
         current_round = game_state.current_round
         
         current_participants = game_state.participants[current_round]
-        round_discussion = game_state.chat_history[current_round]
-        
+
         #Send prompt for player vote
         for participant in current_participants:
-            response = await self.messenger.talk_to_agent(
-                message=participant.get_vote_prompt(),
-                url=participant.url
+            response = await participant.talk_to_agent(
+                prompt=participant.get_vote_prompt(),
             )
-            
-            parsed = self._parse_json_response(response)
-            voted_for = parsed["player_id"]
-            rationale = parsed["reason"]
+
+            voted_for = response["player_id"]
+            rationale = response["reason"]
             
             round_votes = game_state.votes[current_round]
             
@@ -65,7 +62,7 @@ class Voting(Phase):
         # Tally votes
         for v in round_votes:
             voted_for_id = v.voted_for_id
-            if player_votes[voted_for_id] is None:
+            if voted_for_id not in player_votes:
                 player_votes[voted_for_id] = 1
             else:
                 player_votes[voted_for_id] += 1
@@ -80,4 +77,14 @@ class Voting(Phase):
                 player_to_eliminate = player_tup
 
         #Eliminate player
-        game_state.eliminate_player(player_tup[0], EliminationType.VOTED_OUT)
+        if player_to_eliminate is not None:
+            eliminated_player_id = player_to_eliminate[0]
+            game_state.eliminate_player(eliminated_player_id, EliminationType.VOTED_OUT)
+
+            # Log elimination event
+            elimination_event = Event(
+                type=EventType.VILLAGE_ELIMINATION,
+                eliminated_player=eliminated_player_id,
+                description=f"Player {eliminated_player_id} was eliminated by village vote with {player_to_eliminate[1]} votes"
+            )
+            self.game.log_event(current_round, elimination_event)

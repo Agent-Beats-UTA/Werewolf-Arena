@@ -1,4 +1,4 @@
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from src.models.abstract.Phase import Phase
 from src.models.Bid import Bid
@@ -24,14 +24,12 @@ class Bidding(Phase):
         current_participants = game_state.participants[current_round]
 
         for participant in current_participants:
-            response = await self.messenger.talk_to_agent(
-                message=participant.get_bid_prompt(),
-                url=participant.url
+            response = await participant.talk_to_agent(
+                prompt=participant.get_bid_prompt(),
             )
             
-            parsed = self._parse_json_response(response)
-            bid_amount = parsed["bid_amount"]
-            reason = parsed["reason"]
+            bid_amount = response["bid_amount"]
+            reason = response["reason"]
             
             player_bid = Bid(
                 participant_id=participant.id,
