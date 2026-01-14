@@ -27,11 +27,7 @@ class Voting(Phase):
         #Send prompt for player vote
         for participant in current_participants:
             response = await self.messenger.talk_to_agent(
-                message=self.get_vote_prompt(
-                    user_role=participant.role,
-                    participants=current_participants,
-                    messages=round_discussion
-                ),
+                message=participant.get_vote_prompt(),
                 url=participant.url
             )
             
@@ -85,27 +81,3 @@ class Voting(Phase):
 
         #Eliminate player
         game_state.eliminate_player(player_tup[0], EliminationType.VOTED_OUT)
-            
-    # Prompts
-    def get_vote_prompt(self, user_role:str, messages:List[Message], participants:List[Participant]):
-        messages_w_ids = [f"{message.sender_id} - {message.content}" for message in messages]
-        participant_ids = [p.id for p in participants]
-        
-        return f"""
-            It's time to vote for a player to eliminate:
-            
-            remember your role is: {user_role}
-            
-            Here is all of the conversations from this round:
-            {"\n".join(messages_w_ids)}
-            
-            Pick a single player to eliminate and provide an explination as to why.
-            Here are a list of players to chose from:
-            {"\n".join(participant_ids)}
-            
-            Be sure to provide you response in JSON format as follows:
-            {{
-                "player_id": "the player ID you want to eliminate",
-                "reason": "your explanation for why you are eliminating this player"
-            }}
-        """
