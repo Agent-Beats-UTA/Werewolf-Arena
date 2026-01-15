@@ -60,7 +60,8 @@ class GreenAgent:
             return
 
         # Get the participant's role and URL
-        participant_role = request.config.get("role")
+        role_str = request.config.get("role")
+        participant_role = Role[role_str.upper()]
         participant_url = next(iter(request.participants.values()))
         
         await updater.update_status(
