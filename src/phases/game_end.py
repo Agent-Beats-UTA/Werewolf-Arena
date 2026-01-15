@@ -2,6 +2,8 @@ from typing import TYPE_CHECKING, Dict, Any
 
 from src.models.abstract.Phase import Phase
 from src.game.analytics import compute_game_analytics, render_summary_text
+from src.evaluation.scoring import Scoring
+from src.models.enum.Role import Role
 
 if TYPE_CHECKING:
     from src.game.Game import Game
@@ -14,5 +16,22 @@ class GameEnd(Phase):
         
     async def run(self) -> Dict[str, Any]:
         analytics = compute_game_analytics(self.game.state)
+        scores = self.compute_scores()
+        analytics["scores"] = scores
         analytics["summary_text"] = render_summary_text(analytics)
         return analytics
+    
+    def compute_scores(self) -> Dict[str, int]:
+        scoring = Scoring(game_state=self.game.state)
+        scores = {}
+        
+        if self.game.state.werewolf:
+            scores[self.game.state.werewolf.id] = scoring.score_werewolf()
+        
+        if self.game.state.seer:
+            scores[self.game.state.seer.id] = scoring.score_seer()
+        
+        for villager in self.game.state.villagers:
+            scores[villager.id] = scoring.score_villager()
+        
+        return scores
