@@ -62,7 +62,7 @@ class GreenAgent:
         # Get the participant's role and URL
         role_str = request.config.get("role")
         participant_role = Role[role_str.upper()]
-        participant_url = next(iter(request.participants.values()))
+        participant_url = str(next(iter(request.participants.values())))
         
         await updater.update_status(
             TaskState.working, new_agent_text_message(f"Parsed participant {participant_url} with role: {participant_role} from request")
