@@ -17,7 +17,7 @@ jobs:
         include:
           # Update this to build your own agent images.
           - name: game-orchestrator
-            dockerfile: greenAgent/dockerfile
+            dockerfile: dockerfile
             
     # These permissions are required for the workflow to:
     # - Read repository contents (checkout code)
@@ -59,8 +59,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v5
         with:
-          # Use the greenAgent folder as the build context so `src` exists
-          context: ./greenAgent
+          context: .
           file: ${{ matrix.dockerfile }}
           # Only push if this is a push event (not a PR)
           # PRs will build but not push to avoid polluting the registry
