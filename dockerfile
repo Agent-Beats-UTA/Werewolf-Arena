@@ -4,17 +4,14 @@ RUN adduser agent
 USER agent
 WORKDIR /home/agent
 
-RUN mkdir -p /home/agent/greenAgent
-COPY pyproject.toml uv.lock README.md __main__.py greenAgent/
-COPY src greenAgent/src
-
-WORKDIR /home/agent/greenAgent
+COPY pyproject.toml uv.lock README.md __main__.py ./
+COPY src src
 
 RUN \
     --mount=type=cache,target=/home/agent/.cache/uv,uid=1000 \
     uv sync --locked
 
-# Ensure the parent path is on PYTHONPATH so `import greenAgent.src...` works
+# Ensure the working directory is on PYTHONPATH so `import src...` works
 ENV PYTHONPATH=/home/agent
 
 # Run the project's __main__.py (which starts uvicorn on port 9999)
