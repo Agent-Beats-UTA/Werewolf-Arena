@@ -74,9 +74,8 @@ class Night(Phase):
         # Reveal investigation result to seer
         is_werewolf = game_state.werewolf.id == player if game_state.werewolf else False
         await self.game.log(f"[Night] Seer investigated {player[:8]}: {'WEREWOLF' if is_werewolf else 'not werewolf'}")
-        await seer.talk_to_agent(
-            prompt=seer.get_seer_reveal_prompt(player_id=player, is_werewolf=is_werewolf),
-        )
 
         # Store the seer check for future reference
+        # Note: For LLM participants, they don't have persistent memory so we skip the reveal call
+        # The seer_checks list is used to include this info in future prompts
         game_state.seer_checks.append((player, is_werewolf))
