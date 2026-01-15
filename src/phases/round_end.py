@@ -40,8 +40,8 @@ class RoundEnd(Phase):
 
         #werewolves win
         elif werewolf_alive and villager_count <= 1:
-            await self.game.log("[RoundEnd] WEREWOLVES WIN!")
-            game_state.declare_winner("werewolves")
+            await self.game.log("[RoundEnd] WEREWOLF WIN!")
+            game_state.declare_winner("werewolf")
             self.game.current_phase = PhaseEnum.GAME_END
         else:
             await self.game.log(f"[RoundEnd] Advancing to round {current_round + 1}")
