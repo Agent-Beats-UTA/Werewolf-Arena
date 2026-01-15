@@ -60,18 +60,20 @@ class GreenAgent:
         # Use request.config for assessment parameters
 
         # Extract the first participant and their role from the request
-        if not request.participant:
+        if not request.participants:
             await updater.reject(new_agent_text_message("No participant provided"))
             return
         
         if not request.role:
             await updater.reject(new_agent_text_message("No participant role specified"))
 
-        # Get the first participant's role and URL
-        role_name, participant_url = next(iter(request.participants.items()))
-        participant_role = Role[role_name.upper()]
+        # Get the first participant's role and URL        
+        participant_role = request.role
+        
+        dict_vals = iter(request.participants.values())
+        participant_url = next(dict_vals)
 
-        self.init_game(str(participant_url), participant_role)
+        self.init_game(participant_url, participant_role)
         while game_over == False:
             
             #Night Phase
