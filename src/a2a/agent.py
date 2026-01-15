@@ -42,6 +42,10 @@ class GreenAgent:
 
         Use self.messenger.talk_to_agent(message, url) to call other agents.
         """
+        # Reset state for new evaluation
+        self.messenger.reset()
+        self.game = Game([])
+
         game_over = False
         input_text = get_message_text(message)
 

@@ -13,7 +13,7 @@ from a2a.utils import (
     new_task,
 )
 
-from agent import Agent
+from src.a2a.agent import GreenAgent
 
 
 TERMINAL_STATES = {
@@ -24,9 +24,9 @@ TERMINAL_STATES = {
 }
 
 
-class Executor(AgentExecutor):
+class GreenAgentExecutor(AgentExecutor):
     def __init__(self):
-        self.agents: dict[str, Agent] = {} # context_id to agent instance
+        self.agents: dict[str, GreenAgent] = {}  # context_id to agent instance
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         msg = context.message
@@ -44,7 +44,7 @@ class Executor(AgentExecutor):
         context_id = task.context_id
         agent = self.agents.get(context_id)
         if not agent:
-            agent = Agent()
+            agent = GreenAgent()
             self.agents[context_id] = agent
 
         updater = TaskUpdater(event_queue, task.id, context_id)
@@ -57,6 +57,9 @@ class Executor(AgentExecutor):
         except Exception as e:
             print(f"Task failed with agent error: {e}")
             await updater.failed(new_agent_text_message(f"Agent error: {e}", context_id=context_id, task_id=task.id))
+        finally:
+            # Clean up completed agents to prevent memory growth
+            self.agents.pop(context_id, None)
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
         raise ServerError(error=UnsupportedOperationError())
