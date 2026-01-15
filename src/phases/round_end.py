@@ -45,8 +45,8 @@ class RoundEnd(Phase):
             self.game.current_phase = PhaseEnum.GAME_END
         else:
             await self.game.log(f"[RoundEnd] Advancing to round {current_round + 1}")
+            game_state.initialize_next_round()  # Initialize next round data BEFORE incrementing
             game_state.current_round += 1
-            game_state.initialize_next_round()
             self.game.current_phase = PhaseEnum.NIGHT
     
     #Check if the werewolf is alive
