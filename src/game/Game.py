@@ -42,6 +42,12 @@ class Game(BaseModel):
             messenger=messenger
         )
 
+        # Initialize round 1 data structures
+        self.state.votes[1] = []
+        self.state.bids[1] = []
+        self.state.chat_history[1] = []
+        self.state.events[1] = []
+
         # Initialize phase controllers with game and messenger references
         self.night_controller = Night(self, messenger)
         self.voting_controller = Voting(self, messenger)
