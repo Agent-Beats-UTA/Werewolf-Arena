@@ -59,23 +59,13 @@ class GreenAgent:
             await updater.reject(new_agent_text_message(f"Invalid request: {e}"))
             return
 
-        # Replace example code below with your agent logic
-        # Use request.participants to get participant agent URLs by role
-        # Use request.config for assessment parameters
-
-        # Extract the first participant and their role from the request
-        if not request.participants:
-            await updater.reject(new_agent_text_message("No participant provided"))
-            return
-        
-        if not request.role:
-            await updater.reject(new_agent_text_message("No participant role specified"))
-
-        # Get the first participant's role and URL        
+        # Get the participant's role and URL
         participant_role = request.role
+        participant_url = next(iter(request.participants.values()))
         
-        dict_vals = iter(request.participants.values())
-        participant_url = next(dict_vals)
+        await updater.update_status(
+            TaskState.working, new_agent_text_message(f"Parsed participant {participant_url} with role: {participant_role} from request")
+        )
 
         self.init_game(participant_url, participant_role)
         while game_over == False:
@@ -201,14 +191,10 @@ class GreenAgent:
         self.game.state.speaking_order[1] = [p.id for p in shuffled_participants]
 
     def validate_request(self, request: EvalRequest) -> tuple[bool, str]:
-        missing_roles = set(self.required_roles) - set(request.participants.keys())
-        if missing_roles:
-            return False, f"Missing roles: {missing_roles}"
+        if not request.participants:
+            return False, "No participant provided"
 
-        missing_config_keys = set(self.required_config_keys) - set(request.config.keys())
-        if missing_config_keys:
-            return False, f"Missing config keys: {missing_config_keys}"
-
-        # Add additional request validation here
+        if not request.role:
+            return False, "No participant role specified"
 
         return True, "ok"
