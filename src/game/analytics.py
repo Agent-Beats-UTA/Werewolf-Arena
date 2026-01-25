@@ -71,6 +71,27 @@ def compute_game_analytics(state: GameData) -> Dict[str, Any]:
             if getattr(e, "elimination_type", None) == EliminationType.NIGHT_KILL:
                 werewolf_kills += 1
 
+    # Doctor saves
+    doctor_saves_raw = getattr(state, "doctor_saves", {}) or {}
+    latest_werewolf_kill = getattr(state, "latest_werewolf_kill", None)
+
+    doctor_saves = []
+    successful_saves = 0
+    for round_num, saved_player in doctor_saves_raw.items():
+        doctor_saves.append({"round": round_num, "saved_player": saved_player})
+
+    # Count successful saves by checking werewolf kill results
+    # A save is successful if the werewolf targeted the same player the doctor saved
+    for round_num, saved_player in doctor_saves_raw.items():
+        # Check events for this round to see if there was a failed werewolf elimination
+        round_events = getattr(state, "events", {}).get(round_num, [])
+        for event in round_events:
+            from src.models.enum.EventType import EventType
+            if getattr(event, "type", None) == EventType.WEREWOLF_ELIMINATION_FAILURE:
+                if getattr(event, "player", None) == saved_player:
+                    successful_saves += 1
+                    break
+
     winner = getattr(state, "winner", None)
 
     return {
@@ -81,18 +102,25 @@ def compute_game_analytics(state: GameData) -> Dict[str, Any]:
         "seer_checks": seer_checks,
         "seer_found_werewolf": seer_found_werewolf,
         "werewolf_kills": werewolf_kills,
+        "doctor_saves": doctor_saves,
+        "doctor_successful_saves": successful_saves,
     }
 
 
 def render_summary_text(analytics: Dict[str, Any]) -> str:
     scores = analytics.get('scores', {})
     scores_text = "\n".join([f"- {pid}: {score} points" for pid, score in scores.items()])
-    
+
+    doctor_saves = analytics.get('doctor_saves', [])
+    successful_saves = analytics.get('doctor_successful_saves', 0)
+    total_save_attempts = len(doctor_saves)
+
     return (
         "Game complete.\n"
         f"- Winner: {analytics.get('winner', 'unknown')}\n"
         f"- Rounds played: {analytics.get('rounds_played', '?')}\n"
         f"- Werewolf kills: {analytics.get('werewolf_kills', 0)}\n"
         f"- Seer found werewolf: {analytics.get('seer_found_werewolf', False)}\n"
+        f"- Doctor saves: {successful_saves}/{total_save_attempts} successful\n"
         f"\nScores:\n{scores_text if scores_text else '- No scores calculated'}\n"
     )

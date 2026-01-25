@@ -24,14 +24,17 @@ class GameEnd(Phase):
     def compute_scores(self) -> Dict[str, int]:
         scoring = Scoring(game_state=self.game.state)
         scores = {}
-        
+
         if self.game.state.werewolf:
             scores[self.game.state.werewolf.id] = scoring.score_werewolf()
-        
+
         if self.game.state.seer:
             scores[self.game.state.seer.id] = scoring.score_seer()
-        
+
+        if self.game.state.doctor:
+            scores[self.game.state.doctor.id] = scoring.score_doctor()
+
         for villager in self.game.state.villagers:
             scores[villager.id] = scoring.score_villager()
-        
+
         return scores

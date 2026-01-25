@@ -21,7 +21,7 @@ from src.services.llm import LLM
 
 # Number of games to play per role
 GAMES_PER_ROLE = 2
-ROLES_TO_EVALUATE = [Role.VILLAGER, Role.WEREWOLF, Role.SEER]
+ROLES_TO_EVALUATE = [Role.VILLAGER, Role.WEREWOLF, Role.SEER, Role.DOCTOR]
 
 class GreenAgent:
     """Runs Werewolf evaluation across multiple games and roles."""
@@ -258,11 +258,12 @@ class GreenAgent:
         :param participant_role: Role assigned to the real participant
         :type participant_role: Role
         """
-        # Game composition: 3 villagers, 2 werewolves, 1 seer
+        # Game composition: 3 villagers, 2 werewolves, 1 seer, and 1 doctor 
         needed_roles = {
             Role.VILLAGER: 3,
             Role.WEREWOLF: 2,
-            Role.SEER: 1
+            Role.SEER: 1,
+            Role.DOCTOR: 1
         }
 
         # Decrease the count for the real participant's role
@@ -284,11 +285,14 @@ class GreenAgent:
         # Track werewolves and seer for special role references
         werewolves = []
         seer = None
+        doctor = None
 
         if participant_role == Role.WEREWOLF:
             werewolves.append(real_participant)
         elif participant_role == Role.SEER:
             seer = real_participant
+        elif participant_role == Role.DOCTOR:
+            doctor = real_participant
 
         # Create LLM-based participants for remaining roles
         for role, count in needed_roles.items():
@@ -315,6 +319,7 @@ class GreenAgent:
         # Assign special role references (use first werewolf for night kill decisions)
         self.game.state.werewolf = werewolves[0] if werewolves else None
         self.game.state.seer = seer
+        self.game.state.doctor = doctor
 
         # Set random speaking order for round 1
         shuffled_participants = all_participants.copy()

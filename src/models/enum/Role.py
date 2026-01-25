@@ -4,3 +4,4 @@ class Role(Enum):
     WEREWOLF = auto()
     VILLAGER = auto()
     SEER = auto()
+    DOCTOR = auto()

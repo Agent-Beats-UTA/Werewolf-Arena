@@ -6,6 +6,8 @@ from src.models.enum.Role import Role
 from src.services.llm import LLM
 from src.a2a.messenger import Messenger
 
+from src.models.enum.EliminationType import EliminationStatus
+
 if TYPE_CHECKING:
     from src.game.AgentState import AgentState
     from src.game.GameData import GameData
@@ -226,14 +228,22 @@ class Participant(BaseModel):
         current_round = self.game_data.current_round
         messages = self.game_data.chat_history.get(current_round, [])
         speaking_order = self.game_data.speaking_order.get(current_round, [])
-        latest_kill = self.game_data.latest_werewolf_kill
 
         context = self.get_context_prompt()
         messages_str = "\n".join([f"{msg.sender_id}: {msg.content}" for msg in messages])
         order_str = ", ".join(speaking_order)
 
-        night_info = f"Last night, {latest_kill} was eliminated by the werewolf." if latest_kill else ""
-
+        # Handle night info - may be None on first round
+        if self.game_data.latest_werewolf_kill is not None:
+            latest_kill_target = self.game_data.latest_werewolf_kill[0]
+            latest_kill_success = self.game_data.latest_werewolf_kill[1]
+            if latest_kill_success == EliminationStatus.SUCCESS:
+                night_info = f"Last night, {latest_kill_target} was eliminated by the werewolves."
+            else:
+                night_info = f"Last night, {latest_kill_target} was targeted by the werewolves but was saved by the doctor."
+        else:
+            night_info = ""
+            
         return f"""
             {context}
 
@@ -253,6 +263,48 @@ class Participant(BaseModel):
             Respond in JSON format:
             {{
                 "message": "your message to the group"
+            }}
+
+            IMPORTANT: You MUST respond with valid JSON only. Do not include any text, markdown, or explanation before or after the JSON object.
+        """
+        
+    def get_doctor_prompt(self) -> str:
+        current_round = self.game_data.current_round
+        # Use previous round's chat history since night happens before debate
+        previous_round = current_round - 1
+        messages = self.game_data.chat_history.get(previous_round, [])
+        participants = self.game_data.participants.get(current_round, [])
+
+        context = self.get_context_prompt()
+        messages_w_ids = [f"{msg.sender_id} - {msg.content}" for msg in messages]
+
+        # Get list of valid targets (exclude self)
+        valid_targets = [p.id for p in participants if p.id != self.id]
+        targets_list = "\n".join([f"- {p}" for p in valid_targets])
+
+        return f"""
+            {context}
+
+            ROUND {current_round}:
+
+            YOU ARE THE DOCTOR
+
+            Pick one participant to save. Whoever you save cannot be eliminated by the werewolf tonight.
+            You are not allowed to save yourself. Remember, it is important to save those who you feel
+            are contributing valuable information, particularly individuals who you think might be the seer.
+
+            Players you can save:
+            {targets_list}
+
+            Here are the conversations from last round:
+            {chr(10).join(messages_w_ids) if messages_w_ids else "No conversations yet (first round)."}
+
+            Explain why you are choosing to save this player.
+
+            Respond with a JSON object in the following format:
+            {{
+                "player_id": "the player ID you want to save",
+                "reason": "your explanation for why you are saving this player"
             }}
 
             IMPORTANT: You MUST respond with valid JSON only. Do not include any text, markdown, or explanation before or after the JSON object.

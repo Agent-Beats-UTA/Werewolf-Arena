@@ -20,9 +20,10 @@ class GameData(BaseModel):
     winner: Optional[str] = None
     turns_to_speak_per_round: int
     participants: Dict[int, List[Any]] = {}  # List[Participant] at runtime
-    werewolf: Optional[Any] = None  # Participant at runtime
-    seer: Optional[Any] = None  # Participant at runtime
-    villagers: List[Any] = []  # List[Participant] at runtime
+    werewolf: Optional[Participant] = None
+    seer: Optional[Participant] = None
+    doctor: Optional[Participant] = None
+    villagers: List[Participant] = []  # List[Participant] at runtime
     speaking_order: Dict[int, List[str]] = {}
     chat_history: Dict[int, List[Message]] = {}
     bids: Dict[int, List[Bid]] = {}
@@ -30,7 +31,8 @@ class GameData(BaseModel):
     eliminations: Dict[int, List[Elimination]] = {}
     events: Dict[int, List[Event]] = {}
     seer_checks: List[tuple] = []
-    latest_werewolf_kill: Optional[str] = None
+    doctor_saves: Dict[int, str] = {}
+    latest_werewolf_kill: Optional[tuple] = None
 
     def set_status(self, status: str):  # assignment | player_actions | bidding | discussion | voting | end | reset
         pass
@@ -67,12 +69,21 @@ class GameData(BaseModel):
         Eliminate a player from the current round.
 
         Removes the player from the current round's participant list and tracks the elimination.
+        Also clears special role references (werewolf, seer, doctor) if the eliminated player held that role.
 
         Args:
             participant_id: The ID of the participant to eliminate
             elimination_type: Type of elimination (VOTED_OUT or NIGHT_KILL)
         """
         current_participants = self.participants.get(self.current_round, [])
+
+        # Clear special role references if this player held a special role
+        if self.werewolf is not None and self.werewolf.id == participant_id:
+            self.werewolf = None
+        if self.seer is not None and self.seer.id == participant_id:
+            self.seer = None
+        if self.doctor is not None and self.doctor.id == participant_id:
+            self.doctor = None
 
         # Remove the participant from the current round's list
         self.participants[self.current_round] = [
