@@ -48,8 +48,9 @@ class GreenAgent:
             if not ok:
                 await updater.reject(new_agent_text_message(msg))
                 return
-        except ValidationError as e:
-            await updater.reject(new_agent_text_message(f"Invalid request: {e}"))
+        except ValidationError:
+            # Not an EvalRequest - treat as a game prompt and respond using LLM
+            await self.handle_game_prompt(input_text, updater)
             return
 
         participant_url = str(next(iter(request.participants.values())))
@@ -335,3 +336,9 @@ class GreenAgent:
           return False, "No participant provided"
 
       return True, "ok"
+
+    async def handle_game_prompt(self, prompt: str, updater: TaskUpdater) -> None:
+        """Handle incoming game prompts (bid, vote, debate, etc.) using LLM."""
+        llm = LLM()
+        response = llm.execute_prompt(prompt=prompt)
+        await updater.complete(new_agent_text_message(response))
