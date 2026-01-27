@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pydantic import BaseModel
-from typing import Dict, List, Optional, TYPE_CHECKING, Any
+from typing import Dict, List, Optional, Any
 
 from src.models.enum.EliminationType import EliminationType
 from src.models.Message import Message
@@ -11,9 +11,7 @@ from src.models.Event import Event
 from src.models.Bid import Bid
 
 from src.models.enum.Role import Role
-
-if TYPE_CHECKING:
-    from src.models.Participant import Participant
+from src.models.Participant import Participant
 
 class GameData(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
