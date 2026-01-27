@@ -217,7 +217,7 @@ class Participant(BaseModel):
 
             Respond in JSON format:
             {{
-                "bid_amount": <your_bid_amount>,
+                "bid_amount": 50,
                 "reason": "your explanation for your bid"
             }}
 
