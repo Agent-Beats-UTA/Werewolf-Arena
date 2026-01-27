@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from pydantic import BaseModel
 from typing import Dict, List, Optional, Any
 
@@ -11,7 +9,6 @@ from src.models.Event import Event
 from src.models.Bid import Bid
 
 from src.models.enum.Role import Role
-from src.models.Participant import Participant
 
 class GameData(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
@@ -20,11 +17,11 @@ class GameData(BaseModel):
     winner: Optional[str] = None
     turns_to_speak_per_round: int
     participants: Dict[int, List[Any]] = {}  # List[Participant] at runtime
-    primary_werewolf: Optional[Participant] = None
-    secondary_werewolf: Optional[Participant] = None
-    seer: Optional[Participant] = None
-    doctor: Optional[Participant] = None
-    villagers: List[Participant] = []  # List[Participant] at runtime
+    primary_werewolf: Optional[Any] = None
+    secondary_werewolf: Optional[Any] = None
+    seer: Optional[Any] = None
+    doctor: Optional[Any] = None
+    villagers: List[Any] = []
     speaking_order: Dict[int, List[str]] = {}
     chat_history: Dict[int, List[Message]] = {}
     bids: Dict[int, List[Bid]] = {}
