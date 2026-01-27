@@ -65,14 +65,14 @@ class Night(Phase):
     async def execute_werewolf_kill(self):
         game_state = self.game.state
 
-        # Check if werewolf is still alive
-        if game_state.werewolf is None:
-            await self.game.log("[Night] Werewolf is dead, skipping kill")
+        # Check if primary werewolf is still alive (secondary would have been promoted)
+        if game_state.primary_werewolf is None:
+            await self.game.log("[Night] All werewolves are dead, skipping kill")
             return
 
-        await self.game.log(f"[Night] Werewolf {game_state.werewolf.id[:8]} choosing victim...")
-        response = await game_state.werewolf.talk_to_agent(
-            prompt=game_state.werewolf.get_werewolf_prompt(),
+        await self.game.log(f"[Night] Werewolf {game_state.primary_werewolf.id[:8]} choosing victim...")
+        response = await game_state.primary_werewolf.talk_to_agent(
+            prompt=game_state.primary_werewolf.get_werewolf_prompt(),
         )
 
         player = response["player_id"]
@@ -130,8 +130,12 @@ class Night(Phase):
 
         self.game.log_event(game_state.current_round, seer_investigation_event)
 
-        # Reveal investigation result to seer
-        is_werewolf = game_state.werewolf.id == player if game_state.werewolf else False
+        # Reveal investigation result to seer - check both primary and secondary werewolf
+        is_werewolf = False
+        if game_state.primary_werewolf is not None and game_state.primary_werewolf.id == player:
+            is_werewolf = True
+        elif game_state.secondary_werewolf is not None and game_state.secondary_werewolf.id == player:
+            is_werewolf = True
         await self.game.log(f"[Night] Seer investigated {player[:8]}: {'WEREWOLF' if is_werewolf else 'not werewolf'}")
 
         # Store the seer check for future reference

@@ -25,8 +25,15 @@ class GameEnd(Phase):
         scoring = Scoring(game_state=self.game.state)
         scores = {}
 
-        if self.game.state.werewolf:
-            scores[self.game.state.werewolf.id] = scoring.score_werewolf()
+        # Score both werewolves
+        if self.game.state.primary_werewolf:
+            scores[self.game.state.primary_werewolf.id] = scoring.score_werewolf(
+                self.game.state.primary_werewolf.id
+            )
+        if self.game.state.secondary_werewolf:
+            scores[self.game.state.secondary_werewolf.id] = scoring.score_werewolf(
+                self.game.state.secondary_werewolf.id
+            )
 
         if self.game.state.seer:
             scores[self.game.state.seer.id] = scoring.score_seer()

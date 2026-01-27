@@ -5,27 +5,44 @@ from src.models.enum.EventType import EventType
 
 class Scoring(BaseModel):
     game_state: GameData
-    
-    def score_werewolf(self):
+
+    def _get_werewolf_ids(self) -> list:
+        """Get list of all werewolf IDs (primary and secondary)."""
+        ids = []
+        if self.game_state.primary_werewolf is not None:
+            ids.append(self.game_state.primary_werewolf.id)
+        if self.game_state.secondary_werewolf is not None:
+            ids.append(self.game_state.secondary_werewolf.id)
+        return ids
+
+    def score_werewolf(self, werewolf_id: str = None):
         # Werewolf scores points the longer it lasts into the game
         # The werewolf also scores points for each agent it's able to convince it's not the werewolf
-        # Scores bonus points of wins round
-        if not self.game_state.werewolf:
+        # Scores bonus points if wins round
+        werewolf_ids = self._get_werewolf_ids()
+        if not werewolf_ids:
             return 0
-        
+
+        # If no specific werewolf_id provided, use primary
+        if werewolf_id is None:
+            if self.game_state.primary_werewolf:
+                werewolf_id = self.game_state.primary_werewolf.id
+            else:
+                return 0
+
         score = 0
-        werewolf_id = self.game_state.werewolf.id
-        
+
         score += self.game_state.current_round * 10
-        
+
         for round_num, votes in self.game_state.votes.items():
             for vote in votes:
+                # Points for votes NOT cast for this werewolf
                 if vote.voted_for_id != werewolf_id:
                     score += 5
-        
+
         if self.game_state.winner == "werewolf":
             score += 50
-        
+
         return score
     
     def score_seer(self):
@@ -57,15 +74,16 @@ class Scoring(BaseModel):
     def score_villager(self):
         # Scores points for correctly suspecting the werewolf
         # Bonus points for shorter rounds
-        if not self.game_state.werewolf:
+        werewolf_ids = self._get_werewolf_ids()
+        if not werewolf_ids:
             return 0
 
         score = 0
-        werewolf_id = self.game_state.werewolf.id
 
         for round_num, votes in self.game_state.votes.items():
             for vote in votes:
-                if vote.voted_for_id == werewolf_id:
+                # Points for voting for ANY werewolf
+                if vote.voted_for_id in werewolf_ids:
                     score += 10
 
         score += (10 - self.game_state.current_round) * 3

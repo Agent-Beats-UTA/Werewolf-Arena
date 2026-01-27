@@ -27,20 +27,20 @@ class RoundEnd(Phase):
         if not current_participants:
             return
 
-        werewolf_alive = self.is_werewolf_alive(current_participants)
+        werewolf_count = self.count_werewolves(current_participants)
         villager_count = self.count_villagers(current_participants)
 
-        await self.game.log(f"[RoundEnd] Round {current_round}: {len(current_participants)} alive, werewolf {'alive' if werewolf_alive else 'dead'}, {villager_count} villagers")
+        await self.game.log(f"[RoundEnd] Round {current_round}: {len(current_participants)} alive, {werewolf_count} werewolves, {villager_count} villagers")
 
-        #villagers win
-        if not werewolf_alive:
-            await self.game.log("[RoundEnd] VILLAGERS WIN!")
+        # Villagers win if all werewolves are eliminated
+        if werewolf_count == 0:
+            await self.game.log("[RoundEnd] VILLAGERS WIN! All werewolves have been eliminated.")
             game_state.declare_winner("villagers")
             self.game.current_phase = PhaseEnum.GAME_END
 
-        #werewolves win
-        elif werewolf_alive and villager_count <= 1:
-            await self.game.log("[RoundEnd] WEREWOLF WIN!")
+        # Werewolves win if they equal or outnumber the villagers
+        elif werewolf_count >= villager_count:
+            await self.game.log(f"[RoundEnd] WEREWOLVES WIN! Werewolves ({werewolf_count}) >= Villagers ({villager_count})")
             game_state.declare_winner("werewolf")
             self.game.current_phase = PhaseEnum.GAME_END
         else:
@@ -49,16 +49,25 @@ class RoundEnd(Phase):
             game_state.current_round += 1
             self.game.current_phase = PhaseEnum.NIGHT
     
-    #Check if the werewolf is alive
+    #Check if any werewolf is alive (primary or secondary)
     def is_werewolf_alive(self, participants):
-        if not self.game.state.werewolf:
-            return False
-        werewolf_id = self.game.state.werewolf.id
-        return any(p.id == werewolf_id for p in participants)
-    
-    #Check for number of villagers and seers
+        # Check if primary werewolf is alive
+        if self.game.state.primary_werewolf is not None:
+            if any(p.id == self.game.state.primary_werewolf.id for p in participants):
+                return True
+        # Check if secondary werewolf is alive
+        if self.game.state.secondary_werewolf is not None:
+            if any(p.id == self.game.state.secondary_werewolf.id for p in participants):
+                return True
+        return False
+
+    #Count werewolves alive
+    def count_werewolves(self, participants):
+        return sum(1 for p in participants if p.role == Role.WEREWOLF)
+
+    #Count villagers (non-werewolf players)
     def count_villagers(self, participants):
-        return sum(1 for p in participants if p.role in [Role.VILLAGER, Role.SEER])
+        return sum(1 for p in participants if p.role in [Role.VILLAGER, Role.SEER, Role.DOCTOR])
     
     #end of round logging
     def log_event(self, event_type: EventType):

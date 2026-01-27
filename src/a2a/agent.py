@@ -312,12 +312,16 @@ class GreenAgent:
                     werewolves.append(llm_participant)
                 elif role == Role.SEER:
                     seer = llm_participant
+                elif role == Role.DOCTOR:
+                    doctor = llm_participant
 
         # Store participants by round number (round 1 initially)
         self.game.state.participants[1] = all_participants
 
-        # Assign special role references (use first werewolf for night kill decisions)
-        self.game.state.werewolf = werewolves[0] if werewolves else None
+        # Assign special role references
+        # Primary werewolf makes kill decisions, secondary is promoted if primary dies
+        self.game.state.primary_werewolf = werewolves[0] if len(werewolves) > 0 else None
+        self.game.state.secondary_werewolf = werewolves[1] if len(werewolves) > 1 else None
         self.game.state.seer = seer
         self.game.state.doctor = doctor
 

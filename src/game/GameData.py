@@ -20,7 +20,8 @@ class GameData(BaseModel):
     winner: Optional[str] = None
     turns_to_speak_per_round: int
     participants: Dict[int, List[Any]] = {}  # List[Participant] at runtime
-    werewolf: Optional[Participant] = None
+    primary_werewolf: Optional[Participant] = None
+    secondary_werewolf: Optional[Participant] = None
     seer: Optional[Participant] = None
     doctor: Optional[Participant] = None
     villagers: List[Participant] = []  # List[Participant] at runtime
@@ -70,6 +71,7 @@ class GameData(BaseModel):
 
         Removes the player from the current round's participant list and tracks the elimination.
         Also clears special role references (werewolf, seer, doctor) if the eliminated player held that role.
+        If the primary werewolf is eliminated, the secondary werewolf is promoted to primary.
 
         Args:
             participant_id: The ID of the participant to eliminate
@@ -77,9 +79,16 @@ class GameData(BaseModel):
         """
         current_participants = self.participants.get(self.current_round, [])
 
-        # Clear special role references if this player held a special role
-        if self.werewolf is not None and self.werewolf.id == participant_id:
-            self.werewolf = None
+        # Handle werewolf elimination with promotion logic
+        if self.primary_werewolf is not None and self.primary_werewolf.id == participant_id:
+            # Primary werewolf eliminated - promote secondary to primary
+            self.primary_werewolf = self.secondary_werewolf
+            self.secondary_werewolf = None
+        elif self.secondary_werewolf is not None and self.secondary_werewolf.id == participant_id:
+            # Secondary werewolf eliminated
+            self.secondary_werewolf = None
+
+        # Clear other special role references if this player held that role
         if self.seer is not None and self.seer.id == participant_id:
             self.seer = None
         if self.doctor is not None and self.doctor.id == participant_id:
