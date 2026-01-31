@@ -180,10 +180,10 @@ class GreenAgent:
                 winner = game.get("winner")
                 participant_role = game.get("participant_role")
 
-                # Determine if participant won
+                # Determine if participant won (village side: VILLAGER, SEER, DOCTOR)
                 if participant_role == "WEREWOLF":
                     won = winner == "werewolf"
-                else:  # VILLAGER or SEER
+                else:  # VILLAGER, SEER, or DOCTOR — win when villagers win
                     won = winner == "villagers"
 
                 if won:
@@ -325,6 +325,7 @@ class GreenAgent:
         self.game.state.secondary_werewolf = werewolves[1] if len(werewolves) > 1 else None
         self.game.state.seer = seer
         self.game.state.doctor = doctor
+        self.game.state.villagers = [p for p in all_participants if p.role == Role.VILLAGER]
 
         # Set random speaking order for round 1
         shuffled_participants = all_participants.copy()
