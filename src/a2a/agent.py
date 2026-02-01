@@ -114,17 +114,9 @@ class GreenAgent:
             if participant_id:
                 break
 
-        # Wrap in the standard result structure
         result_data = {
-            "participants": {
-                "participant": participant_id
-            },
-            "results": [
-                {
-                    "winner": overall_winner,
-                    "detail": aggregate_analytics
-                }
-            ]
+            "winner": overall_winner,
+            "detail": aggregate_analytics
         }
 
         await updater.add_artifact(
