@@ -9,8 +9,8 @@ class Difficulty(Enum):
     def get_model(self) -> str:
         """Return the LLM model for this difficulty level."""
         if self == Difficulty.EASY:
-            return "gemini-2.5-flash"
+            return "gemini-1.5-flash"
         elif self == Difficulty.HARD:
-            return "gemini-3-flash-preview"
+            return "gemini-2.0-flash"
         else:
-            return "gemini-3-flash-preview"
+            return "gemini-2.0-flash"
