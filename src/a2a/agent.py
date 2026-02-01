@@ -95,10 +95,42 @@ class GreenAgent:
         aggregate_analytics = self.compute_aggregate_analytics(all_game_results, participant_url)
         summary_text = self.render_aggregate_summary(aggregate_analytics)
 
+        # Determine overall winner
+        overall_win_rate = aggregate_analytics.get("overall_win_rate", 0)
+        if overall_win_rate == 1.0:
+            overall_winner = "participant"
+        elif overall_win_rate == 0.0:
+            overall_winner = "opponents"
+        else:
+            overall_winner = "mixed"
+
+        # Get participant ID from first game result
+        participant_id = None
+        for games in all_game_results.values():
+            for game in games:
+                if "participant_id" in game:
+                    participant_id = game["participant_id"]
+                    break
+            if participant_id:
+                break
+
+        # Wrap in the standard result structure
+        result_data = {
+            "participants": {
+                "participant": participant_id
+            },
+            "results": [
+                {
+                    "winner": overall_winner,
+                    "detail": aggregate_analytics
+                }
+            ]
+        }
+
         await updater.add_artifact(
             parts=[
                 Part(root=TextPart(text=summary_text)),
-                Part(root=DataPart(data=aggregate_analytics))
+                Part(root=DataPart(data=result_data))
             ],
             name="Result",
         )
