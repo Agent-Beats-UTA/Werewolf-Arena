@@ -54,7 +54,7 @@ class GreenAgent:
             return
 
         participant_url = str(next(iter(request.participants.values())))
-        difficulty = request.difficulty
+        difficulty = request.config.difficulty
 
         # Data structure to store results from all games, grouped by role
         all_game_results: Dict[Role, List[Dict[str, Any]]] = {
@@ -343,6 +343,9 @@ class GreenAgent:
     def validate_request(self, request: EvalRequest) -> tuple[bool, str]:
       if not request.participants:
           return False, "No participant provided"
+
+      if not request.config or not isinstance(request.config.difficulty, Difficulty):
+          return False, "Invalid or missing difficulty setting in config"
 
       return True, "ok"
 

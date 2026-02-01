@@ -1,7 +1,7 @@
 from pydantic import BaseModel, HttpUrl, Field
-from src.models.enum.Difficulty import Difficulty
+from src.models.EvalConfig import EvalConfig
 
 class EvalRequest(BaseModel):
     """Request format sent by the AgentBeats platform to green agents."""
     participants: dict[str, HttpUrl]
-    difficulty: Difficulty = Field(default=Difficulty.HARD, description="Game difficulty level: 'easy' or 'hard'")
+    config: EvalConfig = Field(default_factory=EvalConfig, description="Evaluation configuration")
