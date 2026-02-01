@@ -1,18 +1,42 @@
 [
   {
-    "name": "Best Werewolf",
-    "query": "SELECT t.participants.participant AS id, COALESCE(SUM(g.participant_score), 0) as Total_Score FROM results t CROSS JOIN UNNEST(t.results) AS r(res) CROSS JOIN UNNEST(res.detail.by_role.WEREWOLF.games) AS role(g) GROUP BY t.participants.participant ORDER BY Total_Score DESC"
+    "name": "🏆 Overall Score",
+    "query": "SELECT participants.participant AS id, res.detail.overall_total_score AS Score FROM results CROSS JOIN UNNEST(results.results) AS t(res) ORDER BY Score DESC"
   },
   {
-    "name": "Best Seer",
-    "query": "SELECT t.participants.participant AS id, COALESCE(SUM(g.participant_score), 0) as Total_Score FROM results t CROSS JOIN UNNEST(t.results) AS r(res) CROSS JOIN UNNEST(res.detail.by_role.SEER.games) AS role(g) GROUP BY t.participants.participant ORDER BY Total_Score DESC"
+    "name": "🏆 Overall Win Rate",
+    "query": "SELECT participants.participant AS id, ROUND(res.detail.overall_win_rate * 100, 1) || '%' AS Win_Rate FROM results CROSS JOIN UNNEST(results.results) AS t(res) ORDER BY res.detail.overall_win_rate DESC"
   },
   {
-    "name": "Best Doctor",
-    "query": "SELECT t.participants.participant AS id, COALESCE(SUM(g.participant_score), 0) as Total_Score FROM results t CROSS JOIN UNNEST(t.results) AS r(res) CROSS JOIN UNNEST(res.detail.by_role.DOCTOR.games) AS role(g) GROUP BY t.participants.participant ORDER BY Total_Score DESC"
+    "name": "🐺 Werewolf Score",
+    "query": "SELECT participants.participant AS id, COALESCE(res.detail.by_role.WEREWOLF.total_score, 0) AS Score FROM results CROSS JOIN UNNEST(results.results) AS t(res) ORDER BY Score DESC"
   },
   {
-    "name": "Best Villager",
-    "query": "SELECT t.participants.participant AS id, COALESCE(SUM(g.participant_score), 0) as Total_Score FROM results t CROSS JOIN UNNEST(t.results) AS r(res) CROSS JOIN UNNEST(res.detail.by_role.VILLAGER.games) AS role(g) GROUP BY t.participants.participant ORDER BY Total_Score DESC"
+    "name": "🩸 Werewolf Kill Count",
+    "query": "SELECT participants.participant AS id, SUM(g.werewolf_kills) AS Total_Kills FROM results CROSS JOIN UNNEST(results.results) AS t(res) CROSS JOIN UNNEST(res.detail.by_role.WEREWOLF.games) AS t2(g) GROUP BY id ORDER BY Total_Kills DESC"
+  },
+  {
+    "name": "🧙 Seer Score",
+    "query": "SELECT participants.participant AS id, COALESCE(res.detail.by_role.SEER.total_score, 0) AS Score FROM results CROSS JOIN UNNEST(results.results) AS t(res) ORDER BY Score DESC"
+  },
+  {
+    "name": "🕵️ Seer Wolves Found",
+    "query": "SELECT participants.participant AS id, COUNT(*) FILTER (WHERE g.seer_found_werewolf = true) AS Wolves_Found FROM results CROSS JOIN UNNEST(results.results) AS t(res) CROSS JOIN UNNEST(res.detail.by_role.SEER.games) AS t2(g) GROUP BY id ORDER BY Wolves_Found DESC"
+  },
+  {
+    "name": "🩺 Doctor Score",
+    "query": "SELECT participants.participant AS id, COALESCE(res.detail.by_role.DOCTOR.total_score, 0) AS Score FROM results CROSS JOIN UNNEST(results.results) AS t(res) ORDER BY Score DESC"
+  },
+  {
+    "name": "🏥 Doctor Lives Saved",
+    "query": "SELECT participants.participant AS id, SUM(g.doctor_successful_saves) AS Lives_Saved FROM results CROSS JOIN UNNEST(results.results) AS t(res) CROSS JOIN UNNEST(res.detail.by_role.DOCTOR.games) AS t2(g) GROUP BY id ORDER BY Lives_Saved DESC"
+  },
+  {
+    "name": "🌾 Villager Score",
+    "query": "SELECT participants.participant AS id, COALESCE(res.detail.by_role.VILLAGER.total_score, 0) AS Score FROM results CROSS JOIN UNNEST(results.results) AS t(res) ORDER BY Score DESC"
+  },
+  {
+    "name": "⏳ Villager Survival Time",
+    "query": "SELECT participants.participant AS id, ROUND(AVG(g.rounds_played), 2) AS Avg_Rounds FROM results CROSS JOIN UNNEST(results.results) AS t(res) CROSS JOIN UNNEST(res.detail.by_role.VILLAGER.games) AS t2(g) GROUP BY id ORDER BY Avg_Rounds DESC"
   }
 ]
