@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Best Werewolf",
+    "query": "SELECT t.participants.participant AS id, COALESCE(SUM(g.participant_score), 0) as Total_Score FROM results t CROSS JOIN UNNEST(t.results) AS r(res) CROSS JOIN UNNEST(res.detail.by_role.WEREWOLF.games) AS role(g) GROUP BY t.participants.participant ORDER BY Total_Score DESC"
+  },
+  {
+    "name": "Best Seer",
+    "query": "SELECT t.participants.participant AS id, COALESCE(SUM(g.participant_score), 0) as Total_Score FROM results t CROSS JOIN UNNEST(t.results) AS r(res) CROSS JOIN UNNEST(res.detail.by_role.SEER.games) AS role(g) GROUP BY t.participants.participant ORDER BY Total_Score DESC"
+  },
+  {
+    "name": "Best Doctor",
+    "query": "SELECT t.participants.participant AS id, COALESCE(SUM(g.participant_score), 0) as Total_Score FROM results t CROSS JOIN UNNEST(t.results) AS r(res) CROSS JOIN UNNEST(res.detail.by_role.DOCTOR.games) AS role(g) GROUP BY t.participants.participant ORDER BY Total_Score DESC"
+  },
+  {
+    "name": "Best Villager",
+    "query": "SELECT t.participants.participant AS id, COALESCE(SUM(g.participant_score), 0) as Total_Score FROM results t CROSS JOIN UNNEST(t.results) AS r(res) CROSS JOIN UNNEST(res.detail.by_role.VILLAGER.games) AS role(g) GROUP BY t.participants.participant ORDER BY Total_Score DESC"
+  }
+]

@@ -1,0 +1,465 @@
+{
+  "participants": {
+    "participant": "019bbf50-8190-7972-b436-487fd7808aaf"
+  },
+  "results": [
+    {
+      "winner": "mixed",
+      "detail": {
+      "total_games": 8,
+      "games_per_role": 2,
+      "participant_url": "http://participant:9009/",
+      "by_role": {
+        "VILLAGER": {
+          "games_played": 2,
+          "wins": 0,
+          "losses": 2,
+          "survival_rate": 0.0,
+          "avg_score": 0.0,
+          "avg_rounds": 2.5,
+          "total_score": 0,
+          "games": [
+            {
+              "winner": "werewolf",
+              "rounds_played": 2,
+              "avg_bid_per_agent": {
+                "c25d61be-a5c8-4982-a952-254de99cb302": 50.0,
+                "302d14a3-a2b8-4289-a62f-ea6d0ad734d7": 50.0,
+                "9ecba675-1040-4006-bdd0-cce73ea6ab3e": 50.0,
+                "d28936e7-4bef-4bc1-bdd1-7e1e7f5c89eb": 51.0,
+                "0870ced8-6480-4166-a1b9-8cbad1a4d803": 52.0,
+                "31945435-a54a-4bb6-b18c-fdfb4e568fc7": 53.0,
+                "b072261b-79e2-4a3c-b083-b8c4d952b2ea": 53.5
+              },
+              "avg_words_per_agent": {
+                "b072261b-79e2-4a3c-b083-b8c4d952b2ea": 60.0,
+                "31945435-a54a-4bb6-b18c-fdfb4e568fc7": 34.0,
+                "0870ced8-6480-4166-a1b9-8cbad1a4d803": 67.5,
+                "d28936e7-4bef-4bc1-bdd1-7e1e7f5c89eb": 60.5,
+                "c25d61be-a5c8-4982-a952-254de99cb302": 79.0,
+                "302d14a3-a2b8-4289-a62f-ea6d0ad734d7": 78.5,
+                "9ecba675-1040-4006-bdd0-cce73ea6ab3e": 69.5
+              },
+              "seer_checks": [
+                {
+                  "checked_player": "c25d61be-a5c8-4982-a952-254de99cb302",
+                  "is_werewolf": false
+                }
+              ],
+              "seer_found_werewolf": false,
+              "werewolf_kills": 1,
+              "doctor_saves": [
+                {
+                  "round": 1,
+                  "saved_player": "c25d61be-a5c8-4982-a952-254de99cb302"
+                },
+                {
+                  "round": 2,
+                  "saved_player": "31945435-a54a-4bb6-b18c-fdfb4e568fc7"
+                }
+              ],
+              "doctor_successful_saves": 1,
+              "scores": {
+                "d28936e7-4bef-4bc1-bdd1-7e1e7f5c89eb": 130,
+                "0870ced8-6480-4166-a1b9-8cbad1a4d803": 125
+              },
+              "summary_text": "Game complete.\n- Winner: werewolf\n- Rounds played: 2\n- Werewolf kills: 1\n- Seer found werewolf: False\n- Doctor saves: 1/2 successful\n\nScores:\n- d28936e7-4bef-4bc1-bdd1-7e1e7f5c89eb: 130 points\n- 0870ced8-6480-4166-a1b9-8cbad1a4d803: 125 points\n",
+              "participant_id": "c25d61be-a5c8-4982-a952-254de99cb302",
+              "participant_role": "VILLAGER",
+              "participant_score": 0,
+              "participant_survived": false
+            },
+            {
+              "winner": "werewolf",
+              "rounds_played": 3,
+              "avg_bid_per_agent": {
+                "65aae548-4dbb-4881-88ed-8bf507d6854d": 50.0,
+                "8f2b47eb-14ae-475d-83cd-fb2d2aef6be0": 50.0,
+                "c7cc1a49-9a2e-46c8-a206-9022a24e4c54": 50.333333333333336,
+                "9ce1d6bb-dbf0-4ca6-912e-a2d03fcf2db4": 51.0,
+                "a77b5c34-23ed-4d56-8128-2ec907391973": 52.0,
+                "0c430b03-7348-41e4-b2b2-bbdb5bb8cec2": 53.5,
+                "7bce2334-7ecb-462c-87c4-8a003c8ee462": 53.666666666666664
+              },
+              "avg_words_per_agent": {
+                "7bce2334-7ecb-462c-87c4-8a003c8ee462": 46.333333333333336,
+                "0c430b03-7348-41e4-b2b2-bbdb5bb8cec2": 40.5,
+                "a77b5c34-23ed-4d56-8128-2ec907391973": 60.666666666666664,
+                "9ce1d6bb-dbf0-4ca6-912e-a2d03fcf2db4": 71.33333333333333,
+                "c7cc1a49-9a2e-46c8-a206-9022a24e4c54": 85.0,
+                "65aae548-4dbb-4881-88ed-8bf507d6854d": 81.5,
+                "8f2b47eb-14ae-475d-83cd-fb2d2aef6be0": 70.0
+              },
+              "seer_checks": [
+                {
+                  "checked_player": "65aae548-4dbb-4881-88ed-8bf507d6854d",
+                  "is_werewolf": false
+                },
+                {
+                  "checked_player": "c7cc1a49-9a2e-46c8-a206-9022a24e4c54",
+                  "is_werewolf": false
+                }
+              ],
+              "seer_found_werewolf": false,
+              "werewolf_kills": 1,
+              "doctor_saves": [
+                {
+                  "round": 1,
+                  "saved_player": "65aae548-4dbb-4881-88ed-8bf507d6854d"
+                },
+                {
+                  "round": 2,
+                  "saved_player": "65aae548-4dbb-4881-88ed-8bf507d6854d"
+                },
+                {
+                  "round": 3,
+                  "saved_player": "0c430b03-7348-41e4-b2b2-bbdb5bb8cec2"
+                }
+              ],
+              "doctor_successful_saves": 2,
+              "scores": {
+                "9ce1d6bb-dbf0-4ca6-912e-a2d03fcf2db4": 160,
+                "a77b5c34-23ed-4d56-8128-2ec907391973": 160
+              },
+              "summary_text": "Game complete.\n- Winner: werewolf\n- Rounds played: 3\n- Werewolf kills: 1\n- Seer found werewolf: False\n- Doctor saves: 2/3 successful\n\nScores:\n- 9ce1d6bb-dbf0-4ca6-912e-a2d03fcf2db4: 160 points\n- a77b5c34-23ed-4d56-8128-2ec907391973: 160 points\n",
+              "participant_id": "65aae548-4dbb-4881-88ed-8bf507d6854d",
+              "participant_role": "VILLAGER",
+              "participant_score": 0,
+              "participant_survived": false
+            }
+          ],
+          "win_rate": 0.0
+        },
+        "WEREWOLF": {
+          "games_played": 2,
+          "wins": 2,
+          "losses": 0,
+          "survival_rate": 1.0,
+          "avg_score": 120.0,
+          "avg_rounds": 2.0,
+          "total_score": 240,
+          "games": [
+            {
+              "winner": "werewolf",
+              "rounds_played": 2,
+              "avg_bid_per_agent": {
+                "410d7c7d-4fb4-4d6c-baa6-0bb8056732e7": 50.0,
+                "3c6a15fa-36c8-47e8-b265-aa24a81e72e2": 50.0,
+                "d5154ffa-a10a-4135-8852-5f991901b242": 50.5,
+                "487b034b-3fe1-4421-b736-007c3d552d16": 51.0,
+                "6c995e46-48da-48cd-b7fe-b8a2fc312556": 50.5,
+                "c8d9068d-6ad1-4612-99bf-50db7edc9a18": 53.0
+              },
+              "avg_words_per_agent": {
+                "c8d9068d-6ad1-4612-99bf-50db7edc9a18": 67.0,
+                "487b034b-3fe1-4421-b736-007c3d552d16": 74.5,
+                "d5154ffa-a10a-4135-8852-5f991901b242": 55.5,
+                "410d7c7d-4fb4-4d6c-baa6-0bb8056732e7": 68.0,
+                "3c6a15fa-36c8-47e8-b265-aa24a81e72e2": 68.0,
+                "6c995e46-48da-48cd-b7fe-b8a2fc312556": 57.5
+              },
+              "seer_checks": [
+                {
+                  "checked_player": "410d7c7d-4fb4-4d6c-baa6-0bb8056732e7",
+                  "is_werewolf": true
+                },
+                {
+                  "checked_player": "d5154ffa-a10a-4135-8852-5f991901b242",
+                  "is_werewolf": false
+                }
+              ],
+              "seer_found_werewolf": true,
+              "werewolf_kills": 2,
+              "doctor_saves": [
+                {
+                  "round": 1,
+                  "saved_player": "410d7c7d-4fb4-4d6c-baa6-0bb8056732e7"
+                }
+              ],
+              "doctor_successful_saves": 0,
+              "scores": {
+                "410d7c7d-4fb4-4d6c-baa6-0bb8056732e7": 120,
+                "487b034b-3fe1-4421-b736-007c3d552d16": 110
+              },
+              "summary_text": "Game complete.\n- Winner: werewolf\n- Rounds played: 2\n- Werewolf kills: 2\n- Seer found werewolf: True\n- Doctor saves: 0/1 successful\n\nScores:\n- 410d7c7d-4fb4-4d6c-baa6-0bb8056732e7: 120 points\n- 487b034b-3fe1-4421-b736-007c3d552d16: 110 points\n",
+              "participant_id": "410d7c7d-4fb4-4d6c-baa6-0bb8056732e7",
+              "participant_role": "WEREWOLF",
+              "participant_score": 120,
+              "participant_survived": true
+            },
+            {
+              "winner": "werewolf",
+              "rounds_played": 2,
+              "avg_bid_per_agent": {
+                "16b2a06d-0cef-4a61-9b6b-60955b91f5d2": 50.0,
+                "8f9a1949-1a73-45d3-8276-e516d9bd3bb0": 50.0,
+                "bf185a61-80dd-4524-a157-9b18ada3b36b": 50.5,
+                "e54f97a5-6a97-41fa-9763-f9857d9ec4c8": 51.5,
+                "1e7b0b2f-2d56-4eb4-b2c0-44c57dda9459": 53.0,
+                "7505903c-0bcf-4145-9ed2-ce693da2184e": 53.0
+              },
+              "avg_words_per_agent": {
+                "7505903c-0bcf-4145-9ed2-ce693da2184e": 49.5,
+                "1e7b0b2f-2d56-4eb4-b2c0-44c57dda9459": 53.0,
+                "e54f97a5-6a97-41fa-9763-f9857d9ec4c8": 55.0,
+                "bf185a61-80dd-4524-a157-9b18ada3b36b": 87.5,
+                "16b2a06d-0cef-4a61-9b6b-60955b91f5d2": 75.5,
+                "8f9a1949-1a73-45d3-8276-e516d9bd3bb0": 70.0
+              },
+              "seer_checks": [
+                {
+                  "checked_player": "16b2a06d-0cef-4a61-9b6b-60955b91f5d2",
+                  "is_werewolf": true
+                }
+              ],
+              "seer_found_werewolf": true,
+              "werewolf_kills": 2,
+              "doctor_saves": [
+                {
+                  "round": 1,
+                  "saved_player": "16b2a06d-0cef-4a61-9b6b-60955b91f5d2"
+                },
+                {
+                  "round": 2,
+                  "saved_player": "16b2a06d-0cef-4a61-9b6b-60955b91f5d2"
+                }
+              ],
+              "doctor_successful_saves": 0,
+              "scores": {
+                "16b2a06d-0cef-4a61-9b6b-60955b91f5d2": 120,
+                "e54f97a5-6a97-41fa-9763-f9857d9ec4c8": 105
+              },
+              "summary_text": "Game complete.\n- Winner: werewolf\n- Rounds played: 2\n- Werewolf kills: 2\n- Seer found werewolf: True\n- Doctor saves: 0/2 successful\n\nScores:\n- 16b2a06d-0cef-4a61-9b6b-60955b91f5d2: 120 points\n- e54f97a5-6a97-41fa-9763-f9857d9ec4c8: 105 points\n",
+              "participant_id": "16b2a06d-0cef-4a61-9b6b-60955b91f5d2",
+              "participant_role": "WEREWOLF",
+              "participant_score": 120,
+              "participant_survived": true
+            }
+          ],
+          "win_rate": 1.0
+        },
+        "SEER": {
+          "games_played": 2,
+          "wins": 2,
+          "losses": 0,
+          "survival_rate": 0.5,
+          "avg_score": 13.5,
+          "avg_rounds": 3.0,
+          "total_score": 27,
+          "games": [
+            {
+              "winner": "villagers",
+              "rounds_played": 2,
+              "avg_bid_per_agent": {
+                "5bb8c89c-a66d-41a8-8e91-fc80d97f5282": 50.0,
+                "1da456a4-eda4-401a-ad4b-fabd5fd2ff14": 50.0,
+                "59194849-c234-4571-a054-81dbe59e7511": 50.5,
+                "ff37cfa3-7979-4c26-95cc-13bd5ce69c2d": 52.0,
+                "850da332-964b-4e95-9865-7e0e841d6279": 52.0,
+                "f67c3f21-10a4-4211-b99d-0639660b2ee2": 53.0
+              },
+              "avg_words_per_agent": {
+                "f67c3f21-10a4-4211-b99d-0639660b2ee2": 58.0,
+                "850da332-964b-4e95-9865-7e0e841d6279": 74.5,
+                "ff37cfa3-7979-4c26-95cc-13bd5ce69c2d": 67.0,
+                "59194849-c234-4571-a054-81dbe59e7511": 64.5,
+                "5bb8c89c-a66d-41a8-8e91-fc80d97f5282": 62.0,
+                "1da456a4-eda4-401a-ad4b-fabd5fd2ff14": 76.5
+              },
+              "seer_checks": [],
+              "seer_found_werewolf": false,
+              "werewolf_kills": 2,
+              "doctor_saves": [
+                {
+                  "round": 1,
+                  "saved_player": "5bb8c89c-a66d-41a8-8e91-fc80d97f5282"
+                },
+                {
+                  "round": 2,
+                  "saved_player": "850da332-964b-4e95-9865-7e0e841d6279"
+                }
+              ],
+              "doctor_successful_saves": 0,
+              "scores": {
+                "f67c3f21-10a4-4211-b99d-0639660b2ee2": 40
+              },
+              "summary_text": "Game complete.\n- Winner: villagers\n- Rounds played: 2\n- Werewolf kills: 2\n- Seer found werewolf: False\n- Doctor saves: 0/2 successful\n\nScores:\n- f67c3f21-10a4-4211-b99d-0639660b2ee2: 40 points\n",
+              "participant_id": "be04466b-e52f-49f1-aac5-427ed4ad9ffb",
+              "participant_role": "SEER",
+              "participant_score": 0,
+              "participant_survived": false
+            },
+            {
+              "winner": "villagers",
+              "rounds_played": 4,
+              "avg_bid_per_agent": {
+                "b50d56f2-56eb-4d82-a29d-ccb8f3cc9e18": 50.0,
+                "95cc5c47-8b94-4480-9e80-f8672221ed1e": 50.0,
+                "08c211af-44f9-4de5-90d6-45bf46b4fce0": 50.25,
+                "b171423f-a9b8-49c0-8a8d-3fbb83615bcd": 51.0,
+                "4c54817b-540a-4158-81e8-dbc6197f321a": 51.666666666666664,
+                "08b5da21-4833-4201-a75a-0989539fbc5e": 52.25,
+                "0004f23e-2829-4fee-8fcf-3f8f2be311f8": 53.25
+              },
+              "avg_words_per_agent": {
+                "0004f23e-2829-4fee-8fcf-3f8f2be311f8": 55.75,
+                "08b5da21-4833-4201-a75a-0989539fbc5e": 53.25,
+                "4c54817b-540a-4158-81e8-dbc6197f321a": 52.0,
+                "b171423f-a9b8-49c0-8a8d-3fbb83615bcd": 66.5,
+                "08c211af-44f9-4de5-90d6-45bf46b4fce0": 70.75,
+                "b50d56f2-56eb-4d82-a29d-ccb8f3cc9e18": 40.0,
+                "95cc5c47-8b94-4480-9e80-f8672221ed1e": 81.0
+              },
+              "seer_checks": [
+                {
+                  "checked_player": "95cc5c47-8b94-4480-9e80-f8672221ed1e",
+                  "is_werewolf": false
+                },
+                {
+                  "checked_player": "08c211af-44f9-4de5-90d6-45bf46b4fce0",
+                  "is_werewolf": false
+                },
+                {
+                  "checked_player": "4c54817b-540a-4158-81e8-dbc6197f321a",
+                  "is_werewolf": true
+                },
+                {
+                  "checked_player": "08b5da21-4833-4201-a75a-0989539fbc5e",
+                  "is_werewolf": true
+                }
+              ],
+              "seer_found_werewolf": true,
+              "werewolf_kills": 0,
+              "doctor_saves": [
+                {
+                  "round": 1,
+                  "saved_player": "b50d56f2-56eb-4d82-a29d-ccb8f3cc9e18"
+                },
+                {
+                  "round": 2,
+                  "saved_player": "b50d56f2-56eb-4d82-a29d-ccb8f3cc9e18"
+                },
+                {
+                  "round": 3,
+                  "saved_player": "b50d56f2-56eb-4d82-a29d-ccb8f3cc9e18"
+                },
+                {
+                  "round": 4,
+                  "saved_player": "b50d56f2-56eb-4d82-a29d-ccb8f3cc9e18"
+                }
+              ],
+              "doctor_successful_saves": 4,
+              "scores": {
+                "b50d56f2-56eb-4d82-a29d-ccb8f3cc9e18": 27,
+                "0004f23e-2829-4fee-8fcf-3f8f2be311f8": 150
+              },
+              "summary_text": "Game complete.\n- Winner: villagers\n- Rounds played: 4\n- Werewolf kills: 0\n- Seer found werewolf: True\n- Doctor saves: 4/4 successful\n\nScores:\n- b50d56f2-56eb-4d82-a29d-ccb8f3cc9e18: 27 points\n- 0004f23e-2829-4fee-8fcf-3f8f2be311f8: 150 points\n",
+              "participant_id": "b50d56f2-56eb-4d82-a29d-ccb8f3cc9e18",
+              "participant_role": "SEER",
+              "participant_score": 27,
+              "participant_survived": true
+            }
+          ],
+          "win_rate": 1.0
+        },
+        "DOCTOR": {
+          "games_played": 2,
+          "wins": 2,
+          "losses": 0,
+          "survival_rate": 0.0,
+          "avg_score": 0.0,
+          "avg_rounds": 3.0,
+          "total_score": 0,
+          "games": [
+            {
+              "winner": "villagers",
+              "rounds_played": 3,
+              "avg_bid_per_agent": {
+                "2c2f28a0-f922-4a31-9710-1169edf8ebdc": 50.0,
+                "4a7321d7-1e3f-4398-9e57-d8bbc66175ef": 50.0,
+                "ffe981bd-ec4a-450f-adf7-b5ebd403e536": 50.0,
+                "dbc6aa16-be98-4256-ae03-e06b2f374d8f": 51.0,
+                "b78367f1-7b93-4880-977c-a0cbdf98274a": 51.666666666666664,
+                "3e21c901-77ba-4154-bc24-03e12b305771": 53.0
+              },
+              "avg_words_per_agent": {
+                "3e21c901-77ba-4154-bc24-03e12b305771": 53.0,
+                "b78367f1-7b93-4880-977c-a0cbdf98274a": 55.0,
+                "dbc6aa16-be98-4256-ae03-e06b2f374d8f": 55.5,
+                "2c2f28a0-f922-4a31-9710-1169edf8ebdc": 69.33333333333333,
+                "4a7321d7-1e3f-4398-9e57-d8bbc66175ef": 88.5,
+                "ffe981bd-ec4a-450f-adf7-b5ebd403e536": 86.0
+              },
+              "seer_checks": [
+                {
+                  "checked_player": "2c2f28a0-f922-4a31-9710-1169edf8ebdc",
+                  "is_werewolf": false
+                }
+              ],
+              "seer_found_werewolf": false,
+              "werewolf_kills": 3,
+              "doctor_saves": [
+                {
+                  "round": 1,
+                  "saved_player": "4a7321d7-1e3f-4398-9e57-d8bbc66175ef"
+                }
+              ],
+              "doctor_successful_saves": 0,
+              "scores": {},
+              "summary_text": "Game complete.\n- Winner: villagers\n- Rounds played: 3\n- Werewolf kills: 3\n- Seer found werewolf: False\n- Doctor saves: 0/1 successful\n\nScores:\n- No scores calculated\n",
+              "participant_id": "fdc0e86b-5dcd-4f90-a285-0a73d0496d1b",
+              "participant_role": "DOCTOR",
+              "participant_score": 0,
+              "participant_survived": false
+            },
+            {
+              "winner": "villagers",
+              "rounds_played": 3,
+              "avg_bid_per_agent": {
+                "41a4a794-979a-417e-a45f-9c7d668c78bb": 50.0,
+                "f2645fa9-6fc9-495c-afe9-6c4aeb3dc7e5": 50.0,
+                "1a5dfdb6-7d48-49bb-8d16-57c9ebe76cfd": 50.333333333333336,
+                "5d4a0731-c00a-4fdc-99c3-12821e2c9885": 51.0,
+                "4b8e23b8-53f4-4af4-bf3b-687de13f07dd": 52.5,
+                "5db76474-e7de-4972-bfb5-275bcfa81d7b": 54.0
+              },
+              "avg_words_per_agent": {
+                "5db76474-e7de-4972-bfb5-275bcfa81d7b": 48.0,
+                "4b8e23b8-53f4-4af4-bf3b-687de13f07dd": 45.0,
+                "5d4a0731-c00a-4fdc-99c3-12821e2c9885": 53.666666666666664,
+                "1a5dfdb6-7d48-49bb-8d16-57c9ebe76cfd": 64.66666666666667,
+                "41a4a794-979a-417e-a45f-9c7d668c78bb": 44.0,
+                "f2645fa9-6fc9-495c-afe9-6c4aeb3dc7e5": 81.5
+              },
+              "seer_checks": [
+                {
+                  "checked_player": "41a4a794-979a-417e-a45f-9c7d668c78bb",
+                  "is_werewolf": false
+                }
+              ],
+              "seer_found_werewolf": false,
+              "werewolf_kills": 3,
+              "doctor_saves": [
+                {
+                  "round": 1,
+                  "saved_player": "41a4a794-979a-417e-a45f-9c7d668c78bb"
+                }
+              ],
+              "doctor_successful_saves": 0,
+              "scores": {},
+              "summary_text": "Game complete.\n- Winner: villagers\n- Rounds played: 3\n- Werewolf kills: 3\n- Seer found werewolf: False\n- Doctor saves: 0/1 successful\n\nScores:\n- No scores calculated\n",
+              "participant_id": "517476f6-d8a1-47fd-a1f0-1cd533887e67",
+              "participant_role": "DOCTOR",
+              "participant_score": 0,
+              "participant_survived": false
+            }
+          ],
+          "win_rate": 1.0
+        }
+      },
+      "overall_win_rate": 0.75,
+      "overall_total_score": 267
+      }
+    }
+  ]
+}
