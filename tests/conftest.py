@@ -7,6 +7,7 @@ load_dotenv()
 
 from src.models.Participant import Participant
 from src.models.enum.Role import Role
+from src.models.enum.Difficulty import Difficulty
 from src.models.Message import Message
 from src.models.Event import Event
 from src.models.Vote import Vote
@@ -44,7 +45,7 @@ def mock_game_data():
     return game_data
 
 
-def create_mock_participant(id: str, role: Role, game_data, messenger, url: str = None, use_llm: bool = True):
+def create_mock_participant(id: str, role: Role, game_data, messenger, url: str = None, use_llm: bool = True, difficulty: Difficulty = Difficulty.HARD):
     """Helper to create a mock participant with talk_to_agent mocked."""
     participant = Mock(spec=Participant)
     participant.id = id
@@ -55,6 +56,7 @@ def create_mock_participant(id: str, role: Role, game_data, messenger, url: str 
     participant.url = url
     participant.llm = None
     participant.llm_state = None
+    participant.difficulty = difficulty
 
     # Mock the async talk_to_agent method
     participant.talk_to_agent = AsyncMock()
@@ -80,7 +82,8 @@ def sample_participants(mock_game_data, mock_messenger):
             game_data=mock_game_data,
             messenger=mock_messenger,
             url="http://localhost:8001",
-            use_llm=False
+            use_llm=False,
+            difficulty=Difficulty.HARD
         ),
         "seer": create_mock_participant(
             id="seer_1",
@@ -88,7 +91,8 @@ def sample_participants(mock_game_data, mock_messenger):
             game_data=mock_game_data,
             messenger=mock_messenger,
             url="http://localhost:8002",
-            use_llm=True
+            use_llm=True,
+            difficulty=Difficulty.HARD
         ),
         "villager1": create_mock_participant(
             id="villager_1",
@@ -96,7 +100,8 @@ def sample_participants(mock_game_data, mock_messenger):
             game_data=mock_game_data,
             messenger=mock_messenger,
             url="http://localhost:8003",
-            use_llm=True
+            use_llm=True,
+            difficulty=Difficulty.HARD
         ),
         "villager2": create_mock_participant(
             id="villager_2",
@@ -104,7 +109,8 @@ def sample_participants(mock_game_data, mock_messenger):
             game_data=mock_game_data,
             messenger=mock_messenger,
             url="http://localhost:8004",
-            use_llm=True
+            use_llm=True,
+            difficulty=Difficulty.HARD
         ),
         "villager3": create_mock_participant(
             id="villager_3",
@@ -112,7 +118,8 @@ def sample_participants(mock_game_data, mock_messenger):
             game_data=mock_game_data,
             messenger=mock_messenger,
             url="http://localhost:8005",
-            use_llm=True
+            use_llm=True,
+            difficulty=Difficulty.HARD
         ),
     }
 

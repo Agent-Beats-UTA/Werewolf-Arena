@@ -1,4 +1,3 @@
-
 import random
 
 from typing import Any, Dict, List
@@ -10,6 +9,7 @@ from a2a.utils import get_message_text, new_agent_text_message
 
 from src.a2a.messenger import Messenger
 from src.models.EvalRequest import EvalRequest
+from src.models.enum.Difficulty import Difficulty
 from src.game.Game import Game
 from src.models.Participant import Participant
 from src.models.enum.Phase import Phase
@@ -54,6 +54,7 @@ class GreenAgent:
             return
 
         participant_url = str(next(iter(request.participants.values())))
+        difficulty = request.difficulty
 
         # Data structure to store results from all games, grouped by role
         all_game_results: Dict[Role, List[Dict[str, Any]]] = {
@@ -65,14 +66,14 @@ class GreenAgent:
 
         await updater.update_status(
             TaskState.working,
-            new_agent_text_message(f"Starting evaluation: {total_games} games ({GAMES_PER_ROLE} per role)")
+            new_agent_text_message(f"Starting evaluation ({difficulty.value} mode): {total_games} games ({GAMES_PER_ROLE} per role)")
         )
 
         # Run games for each role
         for role in ROLES_TO_EVALUATE:
             await updater.update_status(
                 TaskState.working,
-                new_agent_text_message(f"Starting {GAMES_PER_ROLE} games as {role.name}")
+                new_agent_text_message(f"Starting {GAMES_PER_ROLE} games as {role.name} ({difficulty.value})")
             )
 
             for game_num in range(1, GAMES_PER_ROLE + 1):
@@ -80,11 +81,11 @@ class GreenAgent:
 
                 await updater.update_status(
                     TaskState.working,
-                    new_agent_text_message(f"Game {games_completed}/{total_games}: Playing as {role.name} (game {game_num}/{GAMES_PER_ROLE})")
+                    new_agent_text_message(f"Game {games_completed}/{total_games}: Playing as {role.name} (game {game_num}/{GAMES_PER_ROLE}, {difficulty.value})")
                 )
 
                 # Run a single game and collect analytics
-                game_analytics = await self.run_single_game(participant_url, role, updater)
+                game_analytics = await self.run_single_game(participant_url, role, difficulty, updater)
                 all_game_results[role].append(game_analytics)
 
         await updater.update_status(
@@ -92,48 +93,24 @@ class GreenAgent:
         )
 
         # Compute aggregate analytics across all games
-        aggregate_analytics = self.compute_aggregate_analytics(all_game_results, participant_url)
+        aggregate_analytics = self.compute_aggregate_analytics(all_game_results, participant_url, difficulty)
         summary_text = self.render_aggregate_summary(aggregate_analytics)
-
-        # Determine overall winner
-        overall_win_rate = aggregate_analytics.get("overall_win_rate", 0)
-        if overall_win_rate == 1.0:
-            overall_winner = "participant"
-        elif overall_win_rate == 0.0:
-            overall_winner = "opponents"
-        else:
-            overall_winner = "mixed"
-
-        # Get participant ID from first game result
-        participant_id = None
-        for games in all_game_results.values():
-            for game in games:
-                if "participant_id" in game:
-                    participant_id = game["participant_id"]
-                    break
-            if participant_id:
-                break
-
-        result_data = {
-            "winner": overall_winner,
-            "detail": aggregate_analytics
-        }
 
         await updater.add_artifact(
             parts=[
                 Part(root=TextPart(text=summary_text)),
-                Part(root=DataPart(data=result_data))
+                Part(root=DataPart(data=aggregate_analytics))
             ],
             name="Result",
         )
 
-    async def run_single_game(self, participant_url: str, participant_role: Role, updater: TaskUpdater) -> Dict[str, Any]:
+    async def run_single_game(self, participant_url: str, participant_role: Role, difficulty: Difficulty, updater: TaskUpdater) -> Dict[str, Any]:
         """Run a single game and return the analytics."""
         # Reset state for new game
         self.messenger.reset()
         self.game = Game([])
 
-        self.init_game(participant_url, participant_role)
+        self.init_game(participant_url, participant_role, difficulty)
         self.game.updater = updater
 
         # Store participant ID before game starts (they may be eliminated during the game)
@@ -161,6 +138,7 @@ class GreenAgent:
             final_round = self.game.state.current_round
             final_participants = self.game.state.participants.get(final_round, [])
             analytics["participant_survived"] = any(p.id == participant_id for p in final_participants)
+            analytics["difficulty"] = difficulty.value
 
         return analytics
 
@@ -172,12 +150,13 @@ class GreenAgent:
                 return p.id
         return None
 
-    def compute_aggregate_analytics(self, all_results: Dict[Role, List[Dict[str, Any]]], participant_url: str) -> Dict[str, Any]:
+    def compute_aggregate_analytics(self, all_results: Dict[Role, List[Dict[str, Any]]], participant_url: str, difficulty: Difficulty) -> Dict[str, Any]:
         """Compute aggregate analytics across all games, grouped by role."""
         aggregate = {
             "total_games": sum(len(games) for games in all_results.values()),
             "games_per_role": GAMES_PER_ROLE,
             "participant_url": participant_url,
+            "difficulty": difficulty.value,
             "by_role": {}
         }
 
@@ -243,6 +222,7 @@ class GreenAgent:
             "=" * 60,
             "WEREWOLF ARENA - EVALUATION COMPLETE",
             "=" * 60,
+            f"Difficulty: {analytics['difficulty'].upper()}",
             f"Total Games Played: {analytics['total_games']}",
             f"Games Per Role: {analytics['games_per_role']}",
             f"Overall Win Rate: {analytics['overall_win_rate']:.1%}",
@@ -273,15 +253,17 @@ class GreenAgent:
 
         return "\n".join(lines)
 
-    def init_game(self, participant_url: str, participant_role: Role):
+    def init_game(self, participant_url: str, participant_role: Role, difficulty: Difficulty):
         """
-        Takes one participant URL and their role, then creates LLM-based participants
-        to fill out the rest of the game (3 villagers, 2 werewolves, 1 seer total)
+        Takes one participant URL, their role, and difficulty level, then creates LLM-based 
+        participants to fill out the rest of the game (3 villagers, 2 werewolves, 1 seer, 1 doctor)
 
         :param participant_url: URL of the real participant agent
         :type participant_url: str
         :param participant_role: Role assigned to the real participant
         :type participant_role: Role
+        :param difficulty: Game difficulty level
+        :type difficulty: Difficulty
         """
         # Game composition: 3 villagers, 2 werewolves, 1 seer, and 1 doctor 
         needed_roles = {
@@ -303,7 +285,8 @@ class GreenAgent:
             role=participant_role,
             use_llm=False,
             game_data=self.game.state,
-            messenger=self.messenger
+            messenger=self.messenger,
+            difficulty=difficulty
         )
         all_participants.append(real_participant)
 
@@ -328,7 +311,8 @@ class GreenAgent:
                     use_llm=True,
                     game_data=self.game.state,
                     messenger=self.messenger,
-                    llm=LLM()
+                    llm=LLM(difficulty=difficulty),
+                    difficulty=difficulty
                 )
                 all_participants.append(llm_participant)
 

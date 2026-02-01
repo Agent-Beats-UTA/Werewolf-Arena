@@ -3,6 +3,7 @@ from typing import Optional, TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 from src.models.enum.Role import Role
+from src.models.enum.Difficulty import Difficulty
 from src.services.llm import LLM
 from src.a2a.messenger import Messenger
 
@@ -23,6 +24,7 @@ class Participant(BaseModel):
     llm_state: Optional[Any] = None  # AgentState at runtime
     url: Optional[str] = None
     llm: Optional[Any] = None  # LLM at runtime
+    difficulty: Difficulty = Difficulty.HARD   
 
     #Messaging
     async def talk_to_agent(self, prompt: str):
