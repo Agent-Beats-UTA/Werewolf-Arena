@@ -140,6 +140,10 @@ class GreenAgent:
             analytics["participant_survived"] = any(p.id == participant_id for p in final_participants)
             analytics["difficulty"] = difficulty.value
 
+        # Wrap everything except "winner" in a "detail" key
+        winner = analytics.pop("winner", None)
+        analytics = {"winner": winner, "detail": analytics}
+
         return analytics
 
     def get_participant_id_by_url(self, url: str) -> str | None:
@@ -180,8 +184,9 @@ class GreenAgent:
             total_score = 0
 
             for game in games:
+                detail = game.get("detail", {})
                 winner = game.get("winner")
-                participant_role = game.get("participant_role")
+                participant_role = detail.get("participant_role")
 
                 # Determine if participant won (village side: VILLAGER, SEER, DOCTOR)
                 if participant_role == "WEREWOLF":
@@ -194,11 +199,11 @@ class GreenAgent:
                 else:
                     role_stats["losses"] += 1
 
-                if game.get("participant_survived", False):
+                if detail.get("participant_survived", False):
                     survived_count += 1
 
-                total_rounds += game.get("rounds_played", 0)
-                total_score += game.get("participant_score", 0)
+                total_rounds += detail.get("rounds_played", 0)
+                total_score += detail.get("participant_score", 0)
 
             role_stats["survival_rate"] = survived_count / len(games) if games else 0
             role_stats["avg_rounds"] = total_rounds / len(games) if games else 0
